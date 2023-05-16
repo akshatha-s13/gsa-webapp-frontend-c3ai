@@ -9,6 +9,7 @@ import Raman from "../components/Raman";
 import Sem from "../components/Sem";
 import Sidebar from "../components/Sidebar";
 import RecipeGraph from "../components/RecipeGraph";
+import { showAlert } from '../components/CustomAlert';
 
 export const ExperimentContext = React.createContext();
 
@@ -47,7 +48,8 @@ const ExperimentView = () => {
       experimentDispatch({type: 'SET_EXPERIMENT', payload: data})
       setIsLoading(false)
     } catch (e) {
-      console.log(e)
+      //console.log(e)
+     showAlert(e.message)
     }
   }
 
@@ -94,10 +96,10 @@ const ExperimentView = () => {
           <hr/>
           <Raman/>
         </div>
-        <div ref={semRef} className='border rounded p-5 mt-5'>
+        <div id="jpegImage" ref={semRef} className='border rounded p-5 mt-5'>
           <h2 className='text-center text-4xl font-bold mb-4'>SEM</h2>
           <hr/>
-          {/* <Sem/> */}
+          <Sem/>
         </div>
         </div>
     </ExperimentContext.Provider>

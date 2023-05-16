@@ -1,7 +1,9 @@
 import React, {useContext, useState, useEffect, useRef} from 'react'
 import {GlobalContext} from "./App";
 import axios from "axios";
-//import Select from "react-select";
+import { showAlert } from '../components/CustomAlert';
+import { showConfirm } from '../components/CustomConfirm';
+
 const ManageUsers = () => {  
   const {userState} = useContext(GlobalContext)
   const [data, setData] = useState([]);
@@ -10,14 +12,9 @@ const ManageUsers = () => {
   const [showModal, setShowModal] = useState(false);
   const [userId, setUserId] = useState(null);
   const [groupId, setGroupId] = useState(null);
-  // const [skills, setSkills] = useState([]);
-
-  // const handleChange = (skills) => {
-  //   setSkills(skills || []);
-  // };
 
   useEffect(() => {
-    console.log("useEffect")
+    //console.log("useEffect")
     const init = async () => {
       try {
         const response = await axios.post(
@@ -34,7 +31,7 @@ const ManageUsers = () => {
               }
           } 
         );
-        console.log(response.data.objs)
+        //console.log(response.data.objs)
         if (response.status === 200) {
           setData(response.data.objs)
         }
@@ -53,17 +50,24 @@ const ManageUsers = () => {
                 }
             } 
           );
-          console.log(response1.data.objs)
-          const groupIds = response1.data.objs.map(group => ({'value':group.id,'label':group.id}));
+          
+          const groupIds = response1.data.objs.map(group => {
+            const roleName = group.id.split('.').pop(); // Extract the role name from the group ID
+            //console.log(roleName)
+            if(roleName === 'Member' || roleName === 'Moderator')
+              return {'value':group.id,'label':group.id}
+          }).filter(Boolean); 
+          //console.log(groupIds)
           //const groupIds = response1.data.objs.map(group => ({ id: group.id, name:"name",description:"sample" }));
           if (response1.status === 200) {
             setGroups(groupIds)
-            console.log("hereeeeee")
-            console.log(groupIds)
+            //console.log("hereeeeee")
+            //console.log(groupIds)
           }
               
       } catch (e) {
-        console.log(e)
+        //console.log(e)
+       showAlert(e.message)
       }
     }
     init()
@@ -74,10 +78,11 @@ const ManageUsers = () => {
   const handleSave = async () => {
     if(userId==null || groupId==null)
     {
-      alert("User or group data is null")
+     showAlert("User or group data is null"+userId+groupId)
       return;
     }
-    if (window.confirm("Are you sure you want to add user "+userId+" to group "+groupId+"?")) {
+    const confirmed = await showConfirm("Are you sure you want to add user "+userId+" to group "+groupId+"?");
+    if (confirmed){//window.confirm("Are you sure you want to add user "+userId+" to group "+groupId+"?")) {
       try {
         const response = await axios.post(
           process.env.REACT_APP_C3_URL + "/api/1/" + process.env.REACT_APP_C3_TENANT + "/" + process.env.REACT_APP_C3_TAG + "/GrdbGroup",
@@ -94,22 +99,25 @@ const ManageUsers = () => {
           }
         );
         if (response.status === 200) {
-          alert("User membership modified successfully.");
+         showAlert("User membership modified successfully.");
           setUserId(null);
           setGroupId(null);
           setShowModal(false);
           setFlag((prevdata)=>prevdata+1);
         } else {
-          alert("Error modifying user membership. Try again.");
+         showAlert("Error modifying user membership. Try again.");
         }
       } catch (err) {
-        console.log(err.message);
+        //console.log(err.message);
+       showAlert(err.message)
       }
     }
   };
 
   const handleDelete = async (userId) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
+    const confirmed = await showConfirm("Are you sure you want to delete this user?");
+    if (confirmed){
+    //if (window.confirm("Are you sure you want to delete this user?")) {
       try {
         const response = await axios.post(
           process.env.REACT_APP_C3_URL + "/api/1/" + process.env.REACT_APP_C3_TENANT + "/" + process.env.REACT_APP_C3_TAG + "/User",
@@ -145,16 +153,18 @@ const ManageUsers = () => {
         if (response1.status === 200) {
           //setData((prevData) => prevData.filter((author) => author.id !== userId));
           setFlag((prevdata)=>prevdata+1);
-          alert("User deleted successfully");
+          setShowModal(false);
+          showAlert("User deleted successfully");
         } else {
-          alert("Error unlinking user");
+         showAlert("Error unlinking user");
         }
       }
       else{
-        alert("Error deleting user");
+       showAlert("Error deleting user");
       }
       } catch (err) {
-        console.log(err.message);
+        //console.log(err.message);
+       showAlert(err.message)
       }
     }
   };
@@ -244,43 +254,44 @@ const ManageUsers = () => {
       <br/>
       <br/>
       {showModal &&
-      <div className="flex center w-full md:w-full px-3 mb-6 md:mb-0">
-        <label className="block uppercase tracking-wide text-gray-700 text-l font-bold mb-2"
-               htmlFor="characterization-option">
-          Select Group
-        </label>
-        <div className="relative">
-          <select
-            className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-            id="characterization-option"
-            onChange={e => setGroupId(e.target.value)}
-          >
-            {groups.map((group) => (
-                <option key={group.value} value={group.value}>{group.value}</option>
-              ))}
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-            </svg>
-          </div>
+      <div className="flex flex-col items-center justify-center w-full px-3 mb-6 md:mb-0">
+      <label className="block tracking-wide text-gray-700 text-l font-bold mb-2" htmlFor="characterization-option">
+        Select Group for {userId}
+      </label>
+      
+      <div className="relative w-full max-w-xs">
+        <select
+          className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+          id="characterization-option"
+          onChange={e => setGroupId(e.target.value)}
+        >
+          {groups.map((group) => (
+            <option key={group.value} value={group.value}>{group.value}</option>
+          ))}
+        </select>
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 top-1/2 transform -translate-y-1/2">
+          <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+          </svg>
         </div>
-        
-          <button
-              className="bg-black hover:bg-red-700 text-white font-bold py-2 px-4 rounded ml-2"
-              onClick={() => {setShowModal(false);setUserId(null);}}
-              >
-              Cancel
-          </button>
-
-          <button
-              className="bg-black hover:bg-green-700 text-white font-bold py-2 px-4 rounded ml-2"
-              onClick={handleSave}
-              >
-              Save
-          </button>
-        
       </div>
+    
+      <div className="flex mt-4">
+        <button
+          className="bg-black hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-2"
+          onClick={() => { setShowModal(false); setUserId(null); }}
+        >
+          Cancel
+        </button>
+    
+        <button
+          className="bg-black hover:bg-green-700 text-white font-bold py-2 px-4 rounded ml-2"
+          onClick={handleSave}
+        >
+          Save
+        </button>
+      </div>
+    </div>
       
       }
     

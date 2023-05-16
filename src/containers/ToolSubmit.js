@@ -3,15 +3,11 @@ import {GlobalContext} from "../pages/App";
 import {
   defaultPrecision,
   materialNameOptions,
-  catalystOptions,
-  carbonSourceOptions,
-  prepNameOptions,
-  shapeOptions,
-  host
+  prepNameOptions
 } from "../settings";
 import submissionReducer, {submissionDefaultState} from "../reducers/submissionReducer";
 import axios from "axios";
-import SearchByCharacterization from "../components/GrresqQueryBox/SearchByCharacterization";
+import { showAlert } from '../components/CustomAlert';
 
 const ToolSubmit = () => {
   const {userState, toolState} = useContext(GlobalContext)
@@ -29,13 +25,13 @@ const ToolSubmit = () => {
               'action': 'fetch'
           },
           headers: {
-              'authorization': window.localStorage.getItem('adminToken'),
+              'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
               'accept': 'application/json', //xml
               'content-type': 'application/json'
           }
       } 
     );
-    console.log(response.data)
+    //console.log(response.data)
     if(response.data.count>0){
       if (response.data.objs[0].grdbGroups){
     setOwnerGroups([...new Set(response.data.objs[0].grdbGroups.map(group => group.id.split('.')[2]))])
@@ -81,7 +77,7 @@ const ToolSubmit = () => {
   }
   const onSubmitExperiment = async() => {
     if (!userState.signedIn) {
-      alert("Please log in before making a new submission.")
+     showAlert("Please log in before making a new submission.")
       return
     }
 
@@ -92,6 +88,8 @@ const ToolSubmit = () => {
     for (const file of submissionState.ramanFiles) {
       formData.append(`raman_${file.name}`, file)
     }
+    
+    
 
     let experimentData = {...submissionState}
     delete experimentData.semFiles
@@ -100,10 +98,10 @@ const ToolSubmit = () => {
     // const stringifiedExperimentData = JSON.stringify(experimentData)
     // formData.append('experimentData', stringifiedExperimentData)
     // axios.post(host + '/experiments/submit', formData).then(function (response) {
-    //   alert(response.data);
+    //  showAlert(response.data);
     // })
     // .catch(function (error) {
-    //   alert(error);
+    //  showAlert(error);
     // });
 
     // me
@@ -208,7 +206,8 @@ const ToolSubmit = () => {
           }
       }
     );
-    alert("Experiment Submitted with ID "+response.data.id)
+   showAlert("Experiment Submitted with ID "+response.data.id)
+
     if(response.status==200)
     {
       const expId = response.data.id;
@@ -223,7 +222,7 @@ const ToolSubmit = () => {
                 'action':'create'
               },
               headers: {
-                  'authorization': window.localStorage.getItem('adminToken'),
+                  'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
                   'accept': 'application/json',
                   'content-type': 'application/json'
               }
@@ -233,7 +232,8 @@ const ToolSubmit = () => {
     }
     }
     catch(e){
-      console.log(e.message)
+      //console.log(e.message)
+     showAlert(e.message)
     }
   }
 
@@ -1384,6 +1384,7 @@ const ToolSubmit = () => {
       </div>
 
       {/*me add date also later */}
+      {ownerGroups.length > 0  && (
       <div className="md:w-3/4 md:flex md:items-center md:justify-center mb-6 mx-auto">
         <div>
           <label className="block text-gray-500 font-bold md:text-center mb-1 md:mb-0 pr-4"
@@ -1412,6 +1413,7 @@ const ToolSubmit = () => {
           </div>
         </div>
         </div>
+        )}
 
         <div className="md:w-3/4 md:flex md:items-center md:justify-center mb-6 mx-auto">
         <div>
@@ -1429,7 +1431,7 @@ const ToolSubmit = () => {
             })}
             value={submissionState.visibility}
           >  
-          <option key="GROUP">GROUP</option>
+          {ownerGroups.length > 0  && (<option key="GROUP">GROUP</option>)}
           <option key="PRIVATE">PRIVATE</option>
           <option key="PUBLIC">PUBLIC</option>  
           </select>

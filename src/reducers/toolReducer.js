@@ -7,7 +7,7 @@ export const toolDefaultState = {
   recipes: [],
   substrates: [],
   authors: [],
-  catalyst: [],
+  catalysts: [],
   carbonSource: [],
   filters: [],
   savedFilters: [],

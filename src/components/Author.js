@@ -1,5 +1,6 @@
 import React, {useContext} from "react";
 import {GlobalContext} from "../pages/App";
+import { showAlert } from '../components/CustomAlert';
 
 const Author = ({idx, id, firstName, lastName, institution, isCurrentFilter, isFilter}) => {
   const {toolState, toolDispatch} = useContext(GlobalContext)
@@ -12,7 +13,7 @@ const Author = ({idx, id, firstName, lastName, institution, isCurrentFilter, isF
   const onClickAdd = () => {
     for (const filter of toolState.filters) {
       if (filter.type === 'AUTHOR' && filter.id === id) {
-        alert("The author is already added to the filters.")
+       showAlert("The author is already added to the filters.")
         return
       }
     }

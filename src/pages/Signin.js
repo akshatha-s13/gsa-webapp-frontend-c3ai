@@ -1,8 +1,8 @@
 import React, {useState, useContext} from 'react'
 import {Redirect} from 'react-router'
 import {GlobalContext} from './App'
-import {signInWithCredentials} from "../utils/auth";
 import axios from 'axios'
+import { showAlert } from '../components/CustomAlert';
 
 const Signin = () => {
   const [email, setEmail] = useState('')
@@ -41,7 +41,7 @@ const Signin = () => {
                 }
             } 
           );
-          console.log(response1)
+          //console.log(response1)
           var isModerator = false;
           var isAdmin = false;
           response1.data.objs[0].groups.forEach(group => {
@@ -63,8 +63,8 @@ const Signin = () => {
           g.userDispatch({type: 'SIGN_IN', payload})
         } catch (err) {
         // add specific error codes
-        console.log(err)
-        alert("Incorrect email or password or no access permission.")
+        //console.log(err)
+       showAlert("Incorrect email or password or no access permission.")
       }
   }
 

@@ -1,7 +1,7 @@
 import React, {useContext, useState, useEffect} from 'react'
 import {GlobalContext} from "./App";
 import axios from "axios";
-import {host} from "../settings";
+import { showAlert } from '../components/CustomAlert';
 
 const Profile = () => {  
   const {userState} = useContext(GlobalContext)
@@ -18,7 +18,7 @@ const Profile = () => {
                   'action': 'fetch'
               },
               headers: {
-                  'authorization': window.localStorage.getItem('adminToken'),
+                  'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
                   'accept': 'application/json', //xml
                   'content-type': 'application/json'
               }
@@ -33,7 +33,8 @@ const Profile = () => {
           setAuthor(data)
         }
       } catch (e) {
-        console.log(e)
+        //console.log(e)
+       showAlert(e.message)
       }
     }
     init(id)

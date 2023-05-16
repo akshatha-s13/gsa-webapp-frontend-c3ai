@@ -1,8 +1,6 @@
 import axios from 'axios'
 import React, {useState, useEffect, useContext, useRef, useReducer} from 'react'
 import {Redirect} from "react-router-dom";
-import {host} from '../settings'
-import Recipes from '../containers/Recipes'
 import {GlobalContext} from "./App";
 import ToolSubmit from "../containers/ToolSubmit";
 import Sidebar from "../components/Sidebar";
@@ -15,7 +13,7 @@ import SearchByCharacterization from "../components/GrresqQueryBox/SearchByChara
 import SearchByAuthor from "../components/GrresqQueryBox/SearchByAuthor";
 import SearchByRecipe from "../components/GrresqQueryBox/SearchByRecipe"; 
 import QueryResultTable from "../containers/QueryResultTable";
-import Signin from './Signin';
+import { showAlert } from '../components/CustomAlert';
 
 import * as crypto from "crypto";
 
@@ -23,7 +21,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const Tool = () => {
-  const {userState, toolState, toolDispatch, flashError, flashSuccess} = useContext(GlobalContext)
+  const {toolState, toolDispatch, flashError} = useContext(GlobalContext)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false);
@@ -49,8 +47,6 @@ const Tool = () => {
   const getC3KeyTokenGenerator = function () {
     const pvtKey = process.env.REACT_APP_C3_ADMIN_KEY;
     const adminUser = process.env.REACT_APP_C3_ADMIN_USER;
-    //console.log(pvtKey);
-    //console.log(adminUser);
     const signAlgo = 'RSA-SHA512';
     const signatureText = Date.now().toString();
     const signer = crypto.createSign(signAlgo);
@@ -59,7 +55,7 @@ const Tool = () => {
     const tokenString = adminUser + ":" + Buffer.from(signatureText).toString('base64') + ":" + signature;
     const authToken = "c3key " + Buffer.from(tokenString).toString('base64');
 
-    console.log("Generated new token: " + authToken);
+    //console.log("Generated new token: " + authToken);
 
     return authToken;
   };
@@ -67,24 +63,8 @@ const Tool = () => {
   useEffect(() => {
     const init = async () => {
       const token = getC3KeyTokenGenerator();
-      window.localStorage.setItem('adminToken', token)
       setLoading(true)
       try {
-        //console.log(window.localStorage.getItem('adminToken'))
-      
-        // const response = await axios.post(
-        //   process.env.REACT_APP_C3_URL+'/oauth/token', 
-        //   new URLSearchParams({
-        //       'grant_type': 'client_credentials'
-        //   }),
-        //   {
-        //       auth: {
-        //         username: process.env.REACT_APP_C3_ADMIN_USER,
-        //         password: process.env.REACT_APP_C3_ADMIN_PWD
-        //       }
-        //   }
-        // );
-        // window.localStorage.setItem('adminToken', response.data.access_token)
   
         var data = {
           environmentConditions: [], 
@@ -98,6 +78,19 @@ const Tool = () => {
           carbonSource: []
         }
 
+        const response = await axios.post(
+          process.env.REACT_APP_C3_URL+'/oauth/token', 
+          new URLSearchParams({
+                  'grant_type': 'client_credentials'
+              }),
+          {
+              headers: {
+                  'authorization': token
+              }
+          }
+        );  
+        window.localStorage.setItem('adminToken', response.data.access_token)
+
         //catalyst
         const response1 = await axios.post(
           process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/Experiment', 
@@ -107,7 +100,7 @@ const Tool = () => {
                   'action': 'evaluate'
               },
               headers: {
-                  'authorization': window.localStorage.getItem('adminToken'),
+                  'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
                   'accept': 'application/json', //xml
                   'content-type': 'application/json'
               }
@@ -132,7 +125,7 @@ const Tool = () => {
                   'action': 'evaluate'
               },
               headers: {
-                  'authorization':  window.localStorage.getItem('adminToken'),
+                  'authorization':  'Bearer '+  window.localStorage.getItem('adminToken'),
                   'accept': 'application/json', //xml
                   'content-type': 'application/json'
               }
@@ -157,7 +150,7 @@ const Tool = () => {
                   'action': 'evaluate'
               },
               headers: {
-                  'authorization': window.localStorage.getItem('adminToken'),
+                  'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
                   'accept': 'application/json', //xml
                   'content-type': 'application/json'
               }
@@ -182,7 +175,7 @@ const Tool = () => {
                   'action': 'evaluate'
               },
               headers: {
-                  'authorization': window.localStorage.getItem('adminToken'),
+                  'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
                   'accept': 'application/json', //xml
                   'content-type': 'application/json'
               }
@@ -207,7 +200,7 @@ const Tool = () => {
                   'action': 'evaluate'
               },
               headers: {
-                  'authorization': window.localStorage.getItem('adminToken'),
+                  'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
                   'accept': 'application/json', //xml
                   'content-type': 'application/json'
               }
@@ -233,7 +226,7 @@ const Tool = () => {
                   'action': 'evaluate'
               },
               headers: {
-                  'authorization': window.localStorage.getItem('adminToken'),
+                  'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
                   'accept': 'application/json', //xml
                   'content-type': 'application/json'
               }
@@ -259,7 +252,7 @@ const Tool = () => {
                   'action': 'evaluate'
               },
               headers: {
-                  'authorization': window.localStorage.getItem('adminToken'),
+                  'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
                   'accept': 'application/json', //xml
                   'content-type': 'application/json'
               }
@@ -275,8 +268,7 @@ const Tool = () => {
             }
           });
         }
-        console.log(response7.data)
-
+        //console.log(response7.data)
 
         // environmentConditions
         const response9 = await axios.post(
@@ -287,7 +279,7 @@ const Tool = () => {
                   'action': 'evaluate'
               },
               headers: {
-                  'authorization': window.localStorage.getItem('adminToken'),
+                  'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
                   'accept': 'application/json', //xml
                   'content-type': 'application/json'
               }
@@ -312,7 +304,7 @@ const Tool = () => {
                   'action': 'fetch'
               },
               headers: {
-                  'authorization': window.localStorage.getItem('adminToken'),
+                  'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
                   'accept': 'application/json', //xml
                   'content-type': 'application/json'
               }
@@ -322,26 +314,19 @@ const Tool = () => {
         {
         data.authors = response8.data.objs;}
 
-        console.log(data)
+        //console.log(data)
         if (response8.status === 200) {
-          console.log("init done")
+         //console.log("init done")
           setIsInitialized(true);
           toolDispatch({type: 'INIT', payload: data})
         }
       } catch (e) {
-        console.log(e)
-        // if(!window.localStorage.getItem('token'))
-        // {
-        //   flashError("Please Signin")
-        // }
-        // else{
-        flashError('Oops. Something went wrong. Retrying...')
-        // }
+        //console.log(e)
+        flashError('Oops. Database connection lost. Retrying...')
         setError(true)
       }
       setLoading(false)
     }
-
     init()
   }, [])
   useEffect(() => {
@@ -365,19 +350,11 @@ const Tool = () => {
 
   const fetchExperiments = async () => {
     if (toolState.filters.length === 0) {
-      alert("There is no selected filter.")
+     showAlert("There is no selected filter.")
       return
     }
-    // me need to add access to public experiments
     setLoading(true)
     try {
-      //me const response = await axios.post(host + '/experiments/query', toolState.filters)
-      // if (!window.localStorage.getItem('globalToken')) { 
-      //   const tok = getC3KeyTokenGenerator() 
-      //   console.log("fetch")
-      //   window.localStorage.setItem('globalToken',tok)
-      // }
-      //console.log(toolState.filters)
       var str = ""
       var authList = []
       for(let each of toolState.filters)
@@ -399,7 +376,7 @@ const Tool = () => {
         }
         else if(each.type === "KEY_VALUE")
         {
-          console.log(each)
+          //console.log(each)
           if(each.name=== "Inert Gas")
           {
           str+=each.category+".uses"+each.value+" == 'True' && ";
@@ -408,16 +385,6 @@ const Tool = () => {
           str+=each.category+"."+name+" == '"+each.value+"' && ";
           }
         }
-        
-        // if(each.name.includes("Ambient Temperature"))
-        // {
-        //    str=str+"environmentConditions.ambientTemperature >= "+each.min+" && environmentConditions.ambientTemperature <= "+each.max+" && ";
-        // }
-        // else if(each.name.includes("Dew Point"))
-        // {
-        //    str=str+"environmentConditions.dewPoint >= "+each.min+" && environmentConditions.dewPoint <= "+each.max+" && ";
-        // } 
-        // else if(each.name.includes("")) 
       }
       if (authList.length!=0) {
         authList = authList.map(item => `"${item}"`).join(', ')
@@ -426,7 +393,7 @@ const Tool = () => {
       if (str.endsWith(' && ')) {
         str = str.slice(0, -4);
       }
-      console.log(str)
+      //console.log(str)
       
       const response = await axios.post(
         process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/Experiment', 
@@ -464,7 +431,7 @@ const Tool = () => {
         }
       );  
         const data=response1.data.objs
-        console.log(data)
+        //console.log(data)
         toolDispatch({type: 'SET_QUERY_RESULT', payload: data})
         toolDispatch({type: 'SAVE_FILTERS'})
       }
@@ -582,7 +549,7 @@ const Tool = () => {
                 <button
                   className='w-9 h-9 self-center text-center bg-gray-400 hover:bg-blue-700 text-white text-3xl font-bold rounded focus:outline-none focus:shadow-outline'
                   type='button' id='recipe-btn'
-                  onClick={() => setShowRecipes(!showRecipes) /* alert('temporarily disabled (under maintenance)'*/}
+                  onClick={() => setShowRecipes(!showRecipes) /*showAlert('temporarily disabled (under maintenance)'*/}
                 >
                   +
                 </button>

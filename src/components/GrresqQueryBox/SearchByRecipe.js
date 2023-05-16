@@ -2,6 +2,7 @@ import React, {useContext, useState} from "react";
 import {GlobalContext} from "../../pages/App";
 import {carbonSourceOptions, inertGasOptions, defaultPrecision} from "../../settings";
 import {isAddedToCurrentFilters} from "./utils";
+import { showAlert } from '../CustomAlert';
 
 const SearchByRecipe = () => {
   const [min, setMin] = useState(0)
@@ -13,7 +14,7 @@ const SearchByRecipe = () => {
 
   const onClickAdd = () => {
     if (isAddedToCurrentFilters(name, toolState.filters)) {
-      alert(name + ' is already added.')
+     showAlert(name + ' is already added.')
       return
     }
     if (name === 'Carbon Source') {

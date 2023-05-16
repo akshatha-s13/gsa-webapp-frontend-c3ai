@@ -3,3 +3,81 @@
   width: 100px;
   background-color: red;
 }
+
+.custom-alert-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-alert-box {
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 20px;
+  width: 100%; /* Make the box full page width */
+  max-width: 400px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  text-align: center; /* Center align the content */
+  margin-top: 20px; /* Add top margin to create space from the top */
+}
+
+.custom-alert-box h2 {
+  font-size: 18px;
+  margin: 0 0 10px;
+  background-color: initial; /* Remove the background color */
+  color: black; /* Set the header text color to black */
+  padding: 0; /* Remove the padding */
+  border-radius: 0; /* Remove the border radius */
+  font-weight: bold; /* Make the header text bold */
+}
+
+.custom-alert-box p {
+  margin: 0 0 20px;
+}
+
+.custom-alert-box button {
+  background-color: #007bff;
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  margin: 0 auto; /* Center align the button */
+  display: block; /* Convert the button to a block element */
+}
+
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.button-container button {
+  margin: 0 10px;
+  background-color: #007bff;
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.button-container button:focus {
+  outline: none;
+}
+
+.button-container button:hover {
+  background-color: #0056b3;
+}
+
+.button-container button:active {
+  background-color: #004080;
+}
