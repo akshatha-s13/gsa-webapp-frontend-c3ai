@@ -29,7 +29,7 @@ const Recipe = () => {
   return (
     <div className='flex flex-col py-2 px-4 mb-2 border'>
       <div className='flex justify-between'>
-        <h6 className='font-bold ml-3'> Recipe #{recipe.id}</h6>
+        <h6 className='font-bold ml-3'> Recipe #{recipe.name}</h6>
       </div>
       <hr className='my-1'/>
       <div className='w-full md:flex md:items-center mb-1'>

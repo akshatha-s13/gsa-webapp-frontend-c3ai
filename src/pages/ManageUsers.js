@@ -78,7 +78,7 @@ const ManageUsers = () => {
   const handleSave = async () => {
     if(userId==null || groupId==null)
     {
-     showAlert("User or group data is null"+userId+groupId)
+      showAlert("User or group data is null")
       return;
     }
     const confirmed = await showConfirm("Are you sure you want to add user "+userId+" to group "+groupId+"?");
@@ -99,10 +99,10 @@ const ManageUsers = () => {
           }
         );
         if (response.status === 200) {
-         showAlert("User membership modified successfully.");
+          showAlert("User membership modified successfully.");  
           setUserId(null);
           setGroupId(null);
-          setShowModal(false);
+          setShowModal(false);        
           setFlag((prevdata)=>prevdata+1);
         } else {
          showAlert("Error modifying user membership. Try again.");
@@ -115,7 +115,7 @@ const ManageUsers = () => {
   };
 
   const handleDelete = async (userId) => {
-    const confirmed = await showConfirm("Are you sure you want to delete this user?");
+    const confirmed = await showConfirm("Are you sure you want to delete this user "+userId+"?");
     if (confirmed){
     //if (window.confirm("Are you sure you want to delete this user?")) {
       try {

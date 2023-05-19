@@ -24,7 +24,7 @@ const CustomAlert = ({ message, onClose }) => {
 //   );
 // };
 
-const showAlert = (message, duration = 3000) => {
+const showAlert = (message, duration = 100000) => {
     const alertRoot = document.createElement('div');
     alertRoot.className = 'custom-alert-root';
     document.body.appendChild(alertRoot);
@@ -41,7 +41,6 @@ const showAlert = (message, duration = 3000) => {
   
 const closeAlert = (alertRoot) => {
   ReactDOM.unmountComponentAtNode(alertRoot);
-  alertRoot.parentNode.removeChild(alertRoot);
 };
 
 export { showAlert };

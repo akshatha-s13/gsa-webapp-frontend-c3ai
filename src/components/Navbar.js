@@ -74,7 +74,8 @@ const Navbar = () => {
             {userState.signedIn && userState.isAdmin && manageGroups}
           </div>
           <div>
-            {userState.signedIn && (userState.isAdmin || userState.isModerator) && manageUsers}
+            {userState.signedIn && userState.isAdmin && manageUsers}
+            {/* {userState.signedIn && (userState.isAdmin || userState.isModerator) && manageUsers} */}
           </div>
           <div>
             {userState.signedIn && profileSignOut}

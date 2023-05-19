@@ -64,7 +64,7 @@ const Signup = () => {
         );  
         if(response1.data.count>0)
         {
-        const data = response1.data.tuples.map((obj) => obj.cells[0].str) 
+        const data = response1.data.tuples.map((obj) => obj.cells[0].str).filter(obj => obj !== "UIUC" && obj !== "uiuc-test"); 
         setInstitutionOptions(data)
         setInstitution(data[0])
         }       
