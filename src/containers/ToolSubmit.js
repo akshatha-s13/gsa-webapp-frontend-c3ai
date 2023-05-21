@@ -503,7 +503,7 @@ const ToolSubmit = () => {
             />
           </div>
           <span
-            className='md:w-1/6 block text-gray-500 font-bold md:text-left mb-1 md:mb-0 pl-2'>mm&sup2;</span>
+            className='md:w-1/6 block text-gray-500 font-bold md:text-left mb-1 md:mb-0 pl-2'>mm</span>
         </div>
         <div className="md:w-3/4 md:flex md:items-center mb-6">
           <div className="md:w-1/2">
@@ -542,7 +542,7 @@ const ToolSubmit = () => {
               })}
             />
           </div>
-          <span className='md:w-1/6 block text-gray-500 font-bold md:text-left mb-1 md:mb-0 pl-2'>mm</span>
+          <span className='md:w-1/6 block text-gray-500 font-bold md:text-left mb-1 md:mb-0 pl-2'>mm&sup2;</span>
         </div>
       </div>
       :
