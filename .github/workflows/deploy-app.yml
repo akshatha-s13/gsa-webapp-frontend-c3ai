@@ -39,7 +39,7 @@ jobs:
         terraform_version: ${{ env.TF_VERSION }}
       
     - name: Install Terragrunt
-      uses: autero1/action-terragrunt@v1.1.0
+      uses: autero1/action-terragrunt@v1.3.2
       with:
         terragrunt_version: ${{env.TG_VERSION}}
         token: ${{ secrets.GITHUB_TOKEN }}
