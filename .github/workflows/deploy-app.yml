@@ -2,7 +2,7 @@ name: Terraform Apply on Dev Server
 on:
   push:
     branches:
-      - main
+#       - main
       - develop
   workflow_dispatch:
     inputs:
@@ -15,8 +15,8 @@ env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   TF_VERSION: '~> 1.4.0'
-  TG_VERSION: '~> 0.45.0'
-  NODE_VERSION: '20.x'
+  TG_VERSION: 'latest'
+  NODE_VERSION: '16.x'
 
 jobs:
   terraform:
@@ -27,32 +27,36 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
       
-    - name: Checkout Terraform repo
+    - name: Checkout Terraform-live repo
       uses: actions/checkout@v3
       with:
         repository: 'nanoMFG/gsaweb-terraform-live'
         path: './gsaweb-terraform-live'
       
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+      uses: hashicorp/setup-terraform@v2
       with:
         terraform_version: ${{ env.TF_VERSION }}
       
     - name: Install Terragrunt
-      run: |
-        wget https://github.com/gruntwork-io/terragrunt/releases/download/${{ env.TG_VERSION }}/terragrunt_linux_amd64
-        chmod +x terragrunt_linux_amd64
-        sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
+      uses: autero1/action-terragrunt@v1.3.2
+      with:
+        terragrunt_version: ${{env.TG_VERSION}}
+        token: ${{ secrets.GITHUB_TOKEN }}
+#       run: |
+#         wget https://github.com/gruntwork-io/terragrunt/releases/download/${{ env.TG_VERSION }}/terragrunt_linux_amd64
+#         chmod +x terragrunt_linux_amd64
+#         sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
       
     - name: Terraform Init and Apply
       run: |
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          cd "gsaweb/${{ github.event.inputs.environment }}/server"
+          cd "./gsaweb-terraform-live/gsaweb/${{ github.event.inputs.environment }}/server"
         else
           if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
-            cd gsaweb/dev/server
+            cd ./gsaweb-terraform-live/gsaweb/dev/server
           else
-            cd gsaweb/production/server
+            cd ./gsaweb-terraform-live/gsaweb/production/server
           fi
         fi
         terragrunt apply -auto-approve
@@ -67,27 +71,21 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Use Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ env.NODE_VERSION }}
 
     - name: Install Dependencies
-      run: npm ci- name: Set up environment
-      run: |
-        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          echo "${{ secrets.APP_${{ github.event.inputs.environment }}_ENV }}" > .env
-        else
-          if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
-            echo "${{ secrets.APP_DEV_ENV }}" > .env
-          else
-            echo "${{ secrets.APP_PROD_ENV }}" > .env
-          fi
-        fi
+      run: npm ci
       
     - name: Set up environment
       run: |
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          echo "${{ secrets.APP_${{ github.event.inputs.environment }}_ENV }}" > .env
+          if [ "${{ github.event.inputs.environment }}" == "dev" ]; then
+            echo "${{ secrets.APP_DEV_ENV }}" > .env
+          elif [ "${{ github.event.inputs.environment }}" == "prod" ]; then
+            echo "${{ secrets.APP_PROD_ENV }}" > .env
+          fi
         else
           if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
             echo "${{ secrets.APP_DEV_ENV }}" > .env
