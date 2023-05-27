@@ -27,7 +27,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
       
-    - name: Checkout Terraform repo
+    - name: Checkout Terraform-live repo
       uses: actions/checkout@v3
       with:
         repository: 'nanoMFG/gsaweb-terraform-live'
@@ -51,12 +51,12 @@ jobs:
     - name: Terraform Init and Apply
       run: |
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          cd "gsaweb/${{ github.event.inputs.environment }}/server"
+          cd "./gsaweb-terraform-live/gsaweb/${{ github.event.inputs.environment }}/server"
         else
           if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
-            cd gsaweb/dev/server
+            cd ./gsaweb-terraform-live/gsaweb/dev/server
           else
-            cd gsaweb/production/server
+            cd ./gsaweb-terraform-live/gsaweb/production/server
           fi
         fi
         terragrunt apply -auto-approve
