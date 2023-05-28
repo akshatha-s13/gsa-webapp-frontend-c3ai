@@ -60,9 +60,11 @@ jobs:
           fi
         fi
         terragrunt apply -auto-approve
+        bucket_name=$(terraform output -raw ansible_bucket_name)
+        echo "::set-output name=bucket_name::$bucket_name"
 
   build:
-    name: 'Build'
+    name: 'Build and Deploy'
     needs: terraform
     runs-on: ubuntu-latest
 
@@ -74,6 +76,25 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ env.NODE_VERSION }}
+        
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    
+    - name: Install Ansible and AWS collections
+      run: |
+        python -m pip install --upgrade pip
+        pip install ansible boto3 botocore
+        ansible-galaxy collection install community.aws amazon.aws
+        ansible-galaxy install geerlingguy.apache
+        
+      # Move to after build steps, once tested
+#     - name: Run Ansible Playbook
+#       env:
+#         BUCKET_NAME: ${{ steps.terraform.outputs.bucket_name }}
+#       run: |
+#         ansible-playbook playbook.yml -e "ansible_aws_ssm_bucket_name=$BUCKET_NAME"
 
     - name: Install Dependencies
       run: npm ci
