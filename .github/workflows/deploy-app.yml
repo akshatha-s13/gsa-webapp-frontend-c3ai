@@ -61,6 +61,7 @@ jobs:
         fi
         terragrunt apply -auto-approve
         bucket_name=$(terraform output -raw ansible_bucket_name)
+        echo bucket_name
         echo "::set-output name=bucket_name::$bucket_name"
 
   build:
