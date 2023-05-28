@@ -60,6 +60,7 @@ jobs:
           fi
         fi
         terragrunt apply -auto-approve
+        terragrunt output -raw ansible_bucket_name
         bucket_name=$(terragrunt output -raw ansible_bucket_name)
         echo "bucket_name='$bucket_name'"
         echo "bucket_name=$bucket_name" >> $GITHUB_OUTPUT
