@@ -61,8 +61,7 @@ jobs:
         fi
         terragrunt apply -auto-approve
         bucket_name=$(terragrunt output -raw ansible_bucket_name)
-        echo $bucket_name
-        echo "::set-output name=bucket_name::$bucket_name"
+        echo "bucket_name=$bucket_name" >> $GITHUB_OUTPUT
 
   build:
     name: 'Build and Deploy'
