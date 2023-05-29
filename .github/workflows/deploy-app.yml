@@ -106,6 +106,9 @@ jobs:
         APACHE_ENV: ${{ steps.terraform.outputs.env }}
       run: |
         cd .ansible
+        echo $BUCKET_NAME
+        echo $APACHE_ENV
+        echo $KEYED_GROUP_PREFIX
         ansible-playbook setup-apache.yml -e "apache_environment=$APACHE_ENV ansible_aws_ssm_bucket_name=$BUCKET_NAME myuser=$MYUSER mypass=$MYPASS"
         cd ..
 
