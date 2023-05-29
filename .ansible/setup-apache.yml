@@ -1,0 +1,58 @@
+---
+- name: Setup Apache Server
+  hosts: all
+  become: yes
+  vars:
+    aws_profile: default
+    ansible_aws_ssm_region: us-east-2
+    ansible_aws_ssm_bucket_name: "{{ ansible_aws_ssm_bucket_name }}"
+    apache_enablerepo: ""
+    apache_packages:
+      - apache2
+      - apache2-utils  # Required for htpasswd command.
+    apache_global_vhost_settings_non_prod: |
+      <Directory "/var/www/html">
+        AuthType Basic
+        AuthName "Restricted Content"
+        AuthUserFile /etc/apache2/.htpasswd
+        Require valid-user
+      </Directory>
+    apache_global_vhost_settings_prod: ""
+  connection: community.aws.aws_ssm
+  gather_facts: yes
+
+  tasks:
+    - debug:
+       msg: "Environment type: {{ apache_environment | type_debug }}, value: {{ apache_environment }}"
+
+    - name: Set apache_global_vhost_settings for non-prod environments
+      set_fact:
+        apache_global_vhost_settings: "{{ apache_global_vhost_settings_non_prod }}"
+      when: apache_environment != "prod"
+
+    - name: Set apache_global_vhost_settings for production
+      set_fact:
+        apache_global_vhost_settings: "{{ apache_global_vhost_settings_prod }}"
+      when: apache_environment == "prod"
+
+    - name: Include geerlingguy.apache role
+      include_role:
+        name: geerlingguy.apache
+
+    - name: Create directory for htpasswd
+      file:
+        path: /etc/apache2
+        state: directory
+        mode: '0755'
+      when: apache_environment != 'prod'
+
+    - name: Create htpasswd file
+      command: htpasswd -cb /etc/apache2/.htpasswd "{{ myuser }}" "{{ mypass }}"
+      become: yes
+      when: apache_environment != 'prod'
+
+    - name: Restart Apache to apply changes
+      service:
+        name: apache2
+        state: restarted
+      become: yes
