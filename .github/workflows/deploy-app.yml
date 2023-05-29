@@ -22,6 +22,10 @@ jobs:
   terraform:
     name: 'Terraform'
     runs-on: ubuntu-latest
+    outputs:
+      bucket_name: ${{steps.apply.outputs.bucket_name}}
+      app_prefix: ${{steps.apply.outputs.app_prefix}}
+      env: ${{steps.apply.outputs.env}}
 
     steps:
     - name: Checkout
@@ -50,6 +54,7 @@ jobs:
 #         sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
       
     - name: Terraform Init and Apply
+      id: apply
       run: |
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
           cd "./gsaweb-terraform-live/gsaweb/${{ github.event.inputs.environment }}/server"
