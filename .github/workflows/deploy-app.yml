@@ -97,6 +97,11 @@ jobs:
       # Move to after build steps, once tested
       # Note user and pass are set in the env and passed in, for Apache basic auth
       # but will only be used by the non-production deployments 
+    - name: Debug output values
+      run: |
+        echo Bucket Name: ${{ steps.terraform.outputs.bucket_name }}
+        echo App Prefix: ${{ steps.terraform.outputs.app_prefix }}
+        echo Env: ${{ steps.terraform.outputs.env }}
     - name: Run Ansible Playbook to Setup Apache
       env:
         MYUSER: ${{ secrets.MYUSER }}
@@ -106,9 +111,11 @@ jobs:
         APACHE_ENV: ${{ steps.terraform.outputs.env }}
       run: |
         cd .ansible
+        echo "MYUSER: $MYUSER"
         echo $BUCKET_NAME
         echo $APACHE_ENV
         echo $KEYED_GROUP_PREFIX
+        echo "done"
         ansible-playbook setup-apache.yml -e "apache_environment=$APACHE_ENV ansible_aws_ssm_bucket_name=$BUCKET_NAME myuser=$MYUSER mypass=$MYPASS"
         cd ..
 
