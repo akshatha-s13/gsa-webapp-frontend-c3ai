@@ -99,16 +99,16 @@ jobs:
       # but will only be used by the non-production deployments 
     - name: Debug output values
       run: |
-        echo Bucket Name: ${{ steps.terraform.outputs.bucket_name }}
-        echo App Prefix: ${{ steps.terraform.outputs.app_prefix }}
-        echo Env: ${{ steps.terraform.outputs.env }}
+        echo Bucket Name: ${{ needs.terraform.outputs.bucket_name }}
+        echo App Prefix: ${{ needs.terraform.outputs.app_prefix }}
+        echo Env: ${{ needs.terraform.outputs.env }}
     - name: Run Ansible Playbook to Setup Apache
       env:
-        MYUSER: ${{ secrets.MYUSER }}
-        MYPASS: ${{ secrets.MYPASS }}
-        BUCKET_NAME: ${{ steps.terraform.outputs.bucket_name }}
-        KEYED_GROUP_PREFIX: ${{ steps.terraform.outputs.app_prefix }}
-        APACHE_ENV: ${{ steps.terraform.outputs.env }}
+        MYUSER: ${{ secrets.DEV_MYUSER }}
+        MYPASS: ${{ secrets.DEV_MYPASS }}
+        BUCKET_NAME: ${{ needs.terraform.outputs.bucket_name }}
+        KEYED_GROUP_PREFIX: ${{ needs.terraform.outputs.app_prefix }}
+        APACHE_ENV: ${{ needs.terraform.outputs.env }}
       run: |
         cd .ansible
         echo "MYUSER: $MYUSER"
