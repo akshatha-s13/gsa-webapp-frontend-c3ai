@@ -1,0 +1,32 @@
+- hosts: all
+  gather_facts: True
+  connection: community.aws.aws_ssm
+  become: yes
+  become_method: sudo
+  vars:
+    aws_profile: default
+    ansible_aws_ssm_region: us-east-2
+    ansible_aws_ssm_bucket_name: "{{ ansible_aws_ssm_bucket_name }}"
+
+  tasks:
+  - name: Copy react build files to remote
+    copy:
+      src: ./build/
+      dest: /var/www/html
+      mode: '0755'
+    become: yes
+    become_method: sudo
+
+  - name: Change ownership of web directory
+    file:
+      path: /var/www/html
+      owner: www-data
+      group: www-data
+      recurse: yes
+    become: true
+
+  - name: Ensure apache is restarted
+    service:
+      name: apache2
+      state: restarted
+    become: true

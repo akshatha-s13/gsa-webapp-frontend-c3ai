@@ -98,15 +98,7 @@ jobs:
         pip install ansible boto3 botocore
         ansible-galaxy collection install community.aws amazon.aws
         ansible-galaxy install geerlingguy.apache
-        
-      # Move to after build steps, once tested
-      # Note user and pass are set in the env and passed in, for Apache basic auth
-      # but will only be used by the non-production deployments 
-    - name: Debug output values
-      run: |
-        echo Bucket Name: ${{ needs.terraform.outputs.bucket_name }}
-        echo App Prefix: ${{ needs.terraform.outputs.app_prefix }}
-        echo Env: ${{ needs.terraform.outputs.env }}
+
     - name: Run Ansible Playbook to Setup Apache
       env:
         MYUSER: ${{ secrets.DEV_MYUSER }}
@@ -116,11 +108,6 @@ jobs:
         APACHE_ENV: ${{ needs.terraform.outputs.env }}
       run: |
         cd .ansible
-        echo "MYUSER: $MYUSER"
-        echo $BUCKET_NAME
-        echo $APACHE_ENV
-        echo $KEYED_GROUP_PREFIX
-        echo "done"
         ansible-playbook setup-apache.yml -e "apache_environment=$APACHE_ENV ansible_aws_ssm_bucket_name=$BUCKET_NAME myuser=$MYUSER mypass=$MYPASS"
         cd ..
 
@@ -145,3 +132,12 @@ jobs:
       
     - name: Build
       run: npm run build
+
+    - name: Run Ansible Playbook to Deploy App
+      env:
+        BUCKET_NAME: ${{ needs.terraform.outputs.bucket_name }}
+        KEYED_GROUP_PREFIX: ${{ needs.terraform.outputs.app_prefix }}
+      run: |
+        cd .ansible
+        ansible-playbook deploy-app.yml -e "ansible_aws_ssm_bucket_name=$BUCKET_NAME"
+        cd ..
