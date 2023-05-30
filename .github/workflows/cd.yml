@@ -14,8 +14,6 @@ on:
       - 'public/**/*.json'
       - '.github/workflows/**'
       - '.ansible/**'
-    paths-ignore:
-      - '**.md'
 
   workflow_dispatch:
     inputs:

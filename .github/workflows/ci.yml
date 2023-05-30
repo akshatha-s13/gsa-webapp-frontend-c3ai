@@ -6,6 +6,7 @@ on:
       - main
       - develop
     paths:
+      
       - '**.js'
       - '**.jsx'
       - '**.css'
@@ -15,8 +16,6 @@ on:
       - 'public/**/*.json'
       - '.github/workflows/**'
       - '.ansible/**'
-    paths-ignore:
-      - '**.md'
 env:
   NODE_VERSION: '16.x'
 
