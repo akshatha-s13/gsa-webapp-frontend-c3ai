@@ -1,4 +1,4 @@
-name: Terraform Apply on Dev Server
+name: Terraform, Build and Deploy
 on:
   push:
     branches:
@@ -22,6 +22,10 @@ jobs:
   terraform:
     name: 'Terraform'
     runs-on: ubuntu-latest
+    outputs:
+      bucket_name: ${{steps.apply.outputs.bucket_name}}
+      app_prefix: ${{steps.apply.outputs.app_prefix}}
+      env: ${{steps.apply.outputs.env}}
 
     steps:
     - name: Checkout
@@ -37,6 +41,7 @@ jobs:
       uses: hashicorp/setup-terraform@v2
       with:
         terraform_version: ${{ env.TF_VERSION }}
+        terraform_wrapper: false
       
     - name: Install Terragrunt
       uses: autero1/action-terragrunt@v1.3.2
@@ -49,6 +54,7 @@ jobs:
 #         sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
       
     - name: Terraform Init and Apply
+      id: apply
       run: |
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
           cd "./gsaweb-terraform-live/gsaweb/${{ github.event.inputs.environment }}/server"
@@ -60,9 +66,15 @@ jobs:
           fi
         fi
         terragrunt apply -auto-approve
+        bucket_name=$(terragrunt output -raw ansible_bucket_name)
+        echo "bucket_name=$bucket_name" >> $GITHUB_OUTPUT
+        app_prefix=$(terragrunt output -raw app_prefix)
+        echo "app_prefix=$app_prefix" >> $GITHUB_OUTPUT
+        env=$(terragrunt output -raw env)
+        echo "env=$env" >> $GITHUB_OUTPUT
 
   build:
-    name: 'Build'
+    name: 'Build and Deploy'
     needs: terraform
     runs-on: ubuntu-latest
 
@@ -74,6 +86,30 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ env.NODE_VERSION }}
+        
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    
+    - name: Install Ansible and AWS collections
+      run: |
+        python -m pip install --upgrade pip
+        pip install ansible boto3 botocore
+        ansible-galaxy collection install community.aws amazon.aws
+        ansible-galaxy install geerlingguy.apache
+
+    - name: Run Ansible Playbook to Setup Apache
+      env:
+        MYUSER: ${{ secrets.DEV_MYUSER }}
+        MYPASS: ${{ secrets.DEV_MYPASS }}
+        BUCKET_NAME: ${{ needs.terraform.outputs.bucket_name }}
+        KEYED_GROUP_PREFIX: ${{ needs.terraform.outputs.app_prefix }}
+        APACHE_ENV: ${{ needs.terraform.outputs.env }}
+      run: |
+        cd .ansible
+        ansible-playbook setup-apache.yml -e "apache_environment=$APACHE_ENV ansible_aws_ssm_bucket_name=$BUCKET_NAME myuser=$MYUSER mypass=$MYPASS"
+        cd ..
 
     - name: Install Dependencies
       run: npm ci
@@ -96,3 +132,12 @@ jobs:
       
     - name: Build
       run: npm run build
+
+    - name: Run Ansible Playbook to Deploy App
+      env:
+        BUCKET_NAME: ${{ needs.terraform.outputs.bucket_name }}
+        KEYED_GROUP_PREFIX: ${{ needs.terraform.outputs.app_prefix }}
+      run: |
+        cd .ansible
+        ansible-playbook deploy-app.yml -e "ansible_aws_ssm_bucket_name=$BUCKET_NAME"
+        cd ..

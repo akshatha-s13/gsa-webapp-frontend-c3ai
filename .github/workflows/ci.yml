@@ -1,0 +1,41 @@
+name: CI Workflow
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+env:
+  NODE_VERSION: '16.x'
+
+jobs:
+  build:
+    name: 'Build'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Install Dependencies
+      run: npm ci
+      
+    - name: Set up environment
+      run: |
+        if [[ "${{ github.base_ref }}" == "main" ]]; then
+          echo "${{ secrets.APP_PROD_ENV }}" > .env
+        else
+          echo "${{ secrets.APP_DEV_ENV }}" > .env
+        fi
+      
+    - name: Build
+      run: npm run build
+
+    # Uncomment the following lines when tests are available
+    # - name: Run tests
+    #   run: npm test
