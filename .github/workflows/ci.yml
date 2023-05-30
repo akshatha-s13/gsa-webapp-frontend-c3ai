@@ -5,6 +5,18 @@ on:
     branches:
       - main
       - develop
+    paths:
+      - '**.js'
+      - '**.jsx'
+      - '**.css'
+      - '**.html'
+      - 'package*.json'
+      - 'src/**/*.json'
+      - 'public/**/*.json'
+      - '.github/workflows/**'
+      - '.ansible/**'
+    paths-ignore:
+      - '**.md'
 env:
   NODE_VERSION: '16.x'
 
