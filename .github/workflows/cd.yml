@@ -1,4 +1,4 @@
-name: Terraform Apply on Dev Server
+name: Terraform, Build and Deploy
 on:
   push:
     branches:
