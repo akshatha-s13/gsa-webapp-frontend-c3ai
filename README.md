@@ -6,6 +6,8 @@ Our project utilizes two primary workflows: the CI Workflow and the Terraform, B
 
 ### CI Workflow
 
+Workflow file: [.github/workflows/ci.yml](.github/workflows/ci.yml)  
+
 The CI Workflow is triggered on pull requests to the `main` or `develop` branches. This workflow is primarily designed to ensure the integrity of the codebase by building the application and potentially running tests whenever changes are proposed via pull requests.
 
 The CI workflow follows these steps:
@@ -19,7 +21,10 @@ The CI workflow follows these steps:
 
 This CI workflow helps ensure that any proposed changes to the `develop` or `main` branches do not break the application build process.
 
-### Terraform, Build, and Deploy Workflow
+### CD Workflow 
+
+Workflow file: [.github/workflows/cd.yml](.github/workflows/cd.yml)  
+
 
 The Terraform, Build, and Deploy Workflow handles the continuous deployment of the application. This workflow is triggered when changes are pushed to the `develop` branch or can be manually triggered via `workflow_dispatch` for a specific environment.
 
