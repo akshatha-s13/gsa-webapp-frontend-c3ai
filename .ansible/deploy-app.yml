@@ -11,7 +11,7 @@
   tasks:
   - name: Copy react build files to remote
     copy:
-      src: ./build/
+      src: ../build/
       dest: /var/www/html
       mode: '0755'
     become: yes
