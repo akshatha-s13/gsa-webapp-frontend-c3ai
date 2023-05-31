@@ -4,6 +4,17 @@ on:
     branches:
 #       - main
       - develop
+    paths:
+      - '**.js'
+      - '**.jsx'
+      - '**.css'
+      - '**.html'
+      - 'package*.json'
+      - 'src/**/*.json'
+      - 'public/**/*.json'
+      - '.github/workflows/**'
+      - '.ansible/**'
+
   workflow_dispatch:
     inputs:
       environment:
@@ -36,6 +47,7 @@ jobs:
       with:
         repository: 'nanoMFG/gsaweb-terraform-live'
         path: './gsaweb-terraform-live'
+        token: ${{ secrets.TERRAFORM_LIVE_TOKEN }}
       
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
@@ -48,21 +60,20 @@ jobs:
       with:
         terragrunt_version: ${{env.TG_VERSION}}
         token: ${{ secrets.GITHUB_TOKEN }}
-#       run: |
-#         wget https://github.com/gruntwork-io/terragrunt/releases/download/${{ env.TG_VERSION }}/terragrunt_linux_amd64
-#         chmod +x terragrunt_linux_amd64
-#         sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
       
     - name: Terraform Init and Apply
       id: apply
       run: |
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
           cd "./gsaweb-terraform-live/gsaweb/${{ github.event.inputs.environment }}/server"
-        else
-          if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
-            cd ./gsaweb-terraform-live/gsaweb/dev/server
+          echo "Deploying from config:  gsaweb/${{ github.event.inputs.environment }}/server"
           else
-            cd ./gsaweb-terraform-live/gsaweb/production/server
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            cd ./gsaweb-terraform-live/gsaweb/prod/server
+            echo "Deploying from config:  gsaweb/prod/server"
+          else
+            cd ./gsaweb-terraform-live/gsaweb/dev/server
+            echo "Deploying from config:  gsaweb/dev/server"
           fi
         fi
         terragrunt apply -auto-approve

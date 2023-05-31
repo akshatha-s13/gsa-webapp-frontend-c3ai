@@ -1,0 +1,48 @@
+name: Terraform Destroy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to destroy'
+        required: true
+        default: 'dev'
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  TF_VERSION: '~> 1.4.0'
+  TG_VERSION: 'latest'
+
+jobs:
+  terraform_destroy:
+    name: 'Terraform Destroy'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      
+    - name: Checkout Terraform-live repo
+      uses: actions/checkout@v3
+      with:
+        repository: 'nanoMFG/gsaweb-terraform-live'
+        path: './gsaweb-terraform-live'
+        token: ${{ secrets.TERRAFORM_LIVE_TOKEN }}
+      
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+        terraform_wrapper: false
+      
+    - name: Install Terragrunt
+      uses: autero1/action-terragrunt@v1.3.2
+      with:
+        terragrunt_version: ${{env.TG_VERSION}}
+        token: ${{ secrets.GITHUB_TOKEN }}
+      
+    - name: Terraform Destroy
+      run: |
+        cd "./gsaweb-terraform-live/gsaweb/${{ github.event.inputs.environment }}/server"
+        terragrunt destroy -auto-approve
