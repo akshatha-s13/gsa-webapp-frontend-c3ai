@@ -1,5 +1,5 @@
 import axios from 'axios'
-import React, {useState, useEffect, useContext, useRef, useReducer} from 'react'
+import React, {useState, useEffect, useContext, useRef} from 'react'
 import {Redirect} from "react-router-dom";
 import {GlobalContext} from "./App";
 import ToolSubmit from "../containers/ToolSubmit";
@@ -328,6 +328,7 @@ const Tool = () => {
       setLoading(false)
     }
     init()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   useEffect(() => {
     document.getElementById('environment-conditions-btn').innerHTML = showEnvironmentConditions ? '&#8211;' : '+'
@@ -386,7 +387,7 @@ const Tool = () => {
           }
         }
       }
-      if (authList.length!=0) {
+      if (authList.length!==0) {
         authList = authList.map(item => `"${item}"`).join(', ')
         str += 'intersects(authors,['+authList+'])' // authors
       }
@@ -409,7 +410,7 @@ const Tool = () => {
             }
         }
       );  
-      if(response.data.count==0)
+      if(response.data.count===0)
       {
         toolDispatch({type: 'SET_QUERY_RESULT', payload: []})
         toolDispatch({type: 'SAVE_FILTERS'})

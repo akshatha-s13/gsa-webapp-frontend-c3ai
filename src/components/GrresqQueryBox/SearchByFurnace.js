@@ -1,4 +1,4 @@
-import React, {useContext, useRef, useState} from "react"
+import React, {useContext, useState} from "react"
 import {defaultPrecision} from "../../settings";
 import {GlobalContext} from "../../pages/App";
 import {isAddedToCurrentFilters} from "./utils";

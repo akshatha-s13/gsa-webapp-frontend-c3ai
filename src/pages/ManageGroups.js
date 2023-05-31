@@ -1,11 +1,11 @@
 import React, {useContext, useState, useEffect} from 'react'
-import {GlobalContext} from "./App";
+//import {GlobalContext} from "./App";
 import axios from "axios";
 import { showConfirm } from '../components/CustomConfirm';
 import { showAlert } from '../components/CustomAlert';
 
 const ManageGroups = () => {  
-  const {userState} = useContext(GlobalContext)
+  //const {userState} = useContext(GlobalContext)
   const [data, setData] = useState([]);
   const [flag, setFlag] = useState(1);
   const [addNewInstitution, setAddNewInstitution] = useState(false)
@@ -106,7 +106,7 @@ const ManageGroups = () => {
             }
         }
       );
-      if(response.status==200)
+      if(response.status===200)
       {
        showAlert("New group created")  // change 
         setFlag((prevdata)=>prevdata+1);

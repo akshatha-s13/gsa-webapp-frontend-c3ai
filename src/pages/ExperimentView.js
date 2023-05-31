@@ -1,6 +1,5 @@
 import React, {useEffect, useReducer, useRef, useState} from "react";
 import experimentReducer, {experimentDefaultState} from "../reducers/experimentReducer";
-import {host} from "../settings";
 import axios from "axios";
 import {Redirect} from "react-router-dom";
 
@@ -55,10 +54,12 @@ const ExperimentView = () => {
 
   useEffect(() => {
     const expId = window.location.pathname.slice(1).split('/')[2]
-    // if (isNaN(expId)) {
-    //   setIsError(true)
-    // }
-    setExperimentId(expId)
+    if (expId) {
+      setExperimentId(expId)
+    }
+    else{
+      setIsError(true)
+    }
   }, [])
 
   useEffect(() => {

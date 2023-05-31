@@ -1,11 +1,11 @@
-import React, {useContext, useState, useEffect, useRef} from 'react'
-import {GlobalContext} from "./App";
+import React, {useState, useEffect} from 'react'
+//import {GlobalContext} from "./App";
 import axios from "axios";
 import { showAlert } from '../components/CustomAlert';
 import { showConfirm } from '../components/CustomConfirm';
 
 const ManageUsers = () => {  
-  const {userState} = useContext(GlobalContext)
+  //const {userState} = useContext(GlobalContext)
   const [data, setData] = useState([]);
   const [flag, setFlag] = useState(1);
   const [groups, setGroups] = useState([]);
@@ -56,6 +56,8 @@ const ManageUsers = () => {
             //console.log(roleName)
             if(roleName === 'Member' || roleName === 'Moderator')
               return {'value':group.id,'label':group.id}
+            else
+              return null;
           }).filter(Boolean); 
           //console.log(groupIds)
           //const groupIds = response1.data.objs.map(group => ({ id: group.id, name:"name",description:"sample" }));

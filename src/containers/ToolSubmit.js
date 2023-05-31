@@ -37,7 +37,7 @@ const ToolSubmit = () => {
     setOwnerGroups([...new Set(response.data.objs[0].grdbGroups.map(group => group.id.split('.')[2]))])
       }
     }
-    if(response.status==200){
+    if(response.status===200){
     submissionDispatch({type: 'INIT_SUBMISSION_DEFAULT', payload: 
       {
         environmentConditionsNumber: toolState.environmentConditions[0],
@@ -57,6 +57,7 @@ const ToolSubmit = () => {
     }
   }
   init()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const addAuthor = () => {
@@ -187,7 +188,7 @@ const ToolSubmit = () => {
     db.submittedBy = {'id': userState.authorId}
     db.authors = [{'id':userState.authorId}]
     for (const author of data.authors) {
-      if(author.id!=userState.authorId)
+      if(author.id!==userState.authorId)
         db.authors.push({'id':author.id})
     }
 
@@ -208,7 +209,7 @@ const ToolSubmit = () => {
     );
    showAlert("Experiment Submitted with ID "+response.data.id)
 
-    if(response.status==200)
+    if(response.status===200)
     {
       const expId = response.data.id;
       // add relation to authors db.authors
@@ -228,6 +229,10 @@ const ToolSubmit = () => {
               }
           }
         );
+        if(response1.status!==200)
+        {
+          showAlert("Error linking author and experiment")
+        }
       }  
     }
     }
@@ -443,7 +448,7 @@ const ToolSubmit = () => {
               className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
               id="form-catalyst"
               value={submissionState.catalyst}
-              onChange={e => {if(e.target.value=="Other") document.getElementById("form-catalyst-box").disabled=false;submissionDispatch({type: 'CATALYST_CHANGE', payload: e.target.value});}}
+              onChange={e => {if(e.target.value==="Other") document.getElementById("form-catalyst-box").disabled=false;submissionDispatch({type: 'CATALYST_CHANGE', payload: e.target.value});}}
             >
               {toolState.catalysts.map((catalyst) => {
                 return <option key={catalyst}>{catalyst}</option>

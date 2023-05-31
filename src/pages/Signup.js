@@ -135,7 +135,7 @@ const Signup = () => {
         }
       );
       //console.log(response0.data)
-      if(response0.data.count!=0)
+      if(response0.data.count!==0)
       {
        showAlert('User exists.')
         return
@@ -160,7 +160,7 @@ const Signup = () => {
             }
         }
       );
-      if(response.status!=200)
+      if(response.status!==200)
       {
        showAlert("Sign Up failed. Try again")  // change 
       }
@@ -181,7 +181,7 @@ const Signup = () => {
         }
       );
       //console.log(response1)
-      if(response1.status==200)
+      if(response1.status===200)
       {
        showAlert("Signed Up. Please sign in")
         setSignedUp(true)

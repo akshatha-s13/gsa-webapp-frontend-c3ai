@@ -66,7 +66,10 @@ const App = () => {
                   }
               } 
             );
-            
+            if(response.status!==200)
+            {
+              showAlert("Sign in again")
+            }
           } catch (e) {
             if (e.response && e.response.status === 401)
              showAlert('Signed out')

@@ -1,6 +1,6 @@
 import React, {useContext, useState} from "react";
 import {GlobalContext} from "../../pages/App";
-import {carbonSourceOptions, inertGasOptions, defaultPrecision} from "../../settings";
+import {inertGasOptions, defaultPrecision} from "../../settings";
 import {isAddedToCurrentFilters} from "./utils";
 import { showAlert } from '../CustomAlert';
 
