@@ -1,8 +1,8 @@
 export const experimentDefaultState = {
   experiment: null,
   recipeGraphData: null,
-  ramanFiles: null,
-  semFileUrls: []
+  ramanFiles: [],
+  semFiles: []
 }
 
 const experimentReducer = (state, action) => {
@@ -12,7 +12,7 @@ const experimentReducer = (state, action) => {
         ...state,
         experiment: action.payload[0],
         ramanFiles: action.payload[0].ramanFiles,
-        semFileUrls: action.payload[0].semFiles,
+        semFiles: action.payload[0].semFiles,
       }
     }
     case 'INIT_GRAPH_DATA': {

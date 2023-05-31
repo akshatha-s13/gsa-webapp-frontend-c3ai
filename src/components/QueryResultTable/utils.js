@@ -9,6 +9,6 @@ export const isDefault = (filter) => {
   return (
     name.includes('number of layers')
     || name.includes('growth coverage')
-    || name == 'carbon source'
+    || name === 'carbon source'
   )
 }

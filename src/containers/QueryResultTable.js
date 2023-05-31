@@ -1,11 +1,12 @@
-import React, {useContext} from 'react'
-import {GlobalContext} from "../pages/App";
+import React from 'react'
+//import {useContext} from 'react'
+//import {GlobalContext} from "../pages/App";
 import QueryResultTableAdditionalHeaders from "../components/QueryResultTable/QueryResultTableAdditionalHeaders";
 import QueryResultTableDefaultHeaders from "../components/QueryResultTable/QueryResultTableDefaultHeaders";
 import QueryResultTableRows from "../components/QueryResultTable/QueryResultTableRows";
 
 const QueryResultTable = () => {
-  const {toolState} = useContext(GlobalContext)
+  //const {toolState} = useContext(GlobalContext)
 
   return (
     <div className="flex flex-col">

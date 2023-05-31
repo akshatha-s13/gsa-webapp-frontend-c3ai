@@ -1,9 +1,8 @@
 import axios from 'axios'
-import React, {useContext, useEffect, useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {Redirect} from 'react-router'
-import {host} from '../settings'
-import {GlobalContext} from "./App";
 import * as crypto from "crypto";
+import { showAlert } from '../components/CustomAlert';
 
 const Signup = () => {
   const [addNewInstitution, setAddNewInstitution] = useState(false)
@@ -17,13 +16,10 @@ const Signup = () => {
   const [firstname, setFirstname] = useState('')
   const [lastname, setLastname] = useState('')
   const [signedUp, setSignedUp] = useState(false)
-  const g = useContext(GlobalContext)
   
   const getC3KeyTokenGenerator = function () {
     const pvtKey = process.env.REACT_APP_C3_ADMIN_KEY;
     const adminUser = process.env.REACT_APP_C3_ADMIN_USER;
-    //console.log(pvtKey);
-    //console.log(adminUser);
     const signAlgo = 'RSA-SHA512';
     const signatureText = Date.now().toString();
     const signer = crypto.createSign(signAlgo);
@@ -31,9 +27,7 @@ const Signup = () => {
     const signature = signer.sign(pvtKey, 'base64');
     const tokenString = adminUser + ":" + Buffer.from(signatureText).toString('base64') + ":" + signature;
     const authToken = "c3key " + Buffer.from(tokenString).toString('base64');
-
-    console.log("Generated new token: " + authToken);
-
+    //console.log("Generated new token: " + authToken);
     return authToken;
   };
 
@@ -41,7 +35,19 @@ const Signup = () => {
     const getInstitutions = async () => {
       try {
         const token = getC3KeyTokenGenerator();
-        window.localStorage.setItem('adminToken', token)
+        const response = await axios.post(
+          process.env.REACT_APP_C3_URL+'/oauth/token', 
+          new URLSearchParams({
+                  'grant_type': 'client_credentials'
+              }),
+          {
+              headers: {
+                  'authorization': token
+              }
+          }
+        );  
+        window.localStorage.setItem('adminToken', response.data.access_token)
+
         const response1 = await axios.post(
             process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/Author', 
             {spec: {projection: 'unique(institution)'}},
@@ -50,7 +56,7 @@ const Signup = () => {
                     'action': 'evaluate'
                 },
                 headers: {
-                    'authorization': window.localStorage.getItem('adminToken'),
+                    'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
                     'accept': 'application/json', //xml
                     'content-type': 'application/json'
                 }
@@ -58,14 +64,14 @@ const Signup = () => {
         );  
         if(response1.data.count>0)
         {
-        const data = response1.data.tuples.map((obj) => obj.cells[0].str) 
+        const data = response1.data.tuples.map((obj) => obj.cells[0].str).filter(obj => obj !== "UIUC" && obj !== "uiuc-test"); 
         setInstitutionOptions(data)
         setInstitution(data[0])
         }       
       } 
       catch (err) 
       {
-        alert(err) // change to error message
+       showAlert(err) // change to error message
       }
     }
     getInstitutions()
@@ -79,42 +85,41 @@ const Signup = () => {
   const onClickSignUpBtn = async (e) => {
     e.preventDefault()
     if (email === '') {
-      alert('Email field is empty.')
+     showAlert('Email field is empty.')
       return
     }
     if (password === '') {
-      alert('Password field is empty.')
+     showAlert('Password field is empty.')
       return
     }
     if (firstname === '') {
-      alert('First Name field is empty.')
+     showAlert('First Name field is empty.')
       return
     }
     if (lastname === '') {
-      alert('Last Name field is empty.')
+     showAlert('Last Name field is empty.')
       return
     }
     if (addNewInstitution && newInstitution === '') {
-      alert('Institution field is empty.')
+     showAlert('Institution field is empty.')
       return
     }
     if (email !== email2) {
-      alert('Emails do not match.')
+     showAlert('Emails do not match.')
       return
     }
     if (password !== password2) {
-      alert('Passwords do not match.')
+     showAlert('Passwords do not match.')
       return
     }
     if (!isValidPassword(password))
     {
-      alert('The password must be between 8 and 20 characters and contain at least one uppercase character, one lowercase character and one digit')
+     showAlert('The password must be between 8 and 20 characters and contain at least one uppercase character, one lowercase character and one digit')
       return
     }
     try {
       const inst = addNewInstitution ? newInstitution : institution;
-      const token = window.localStorage.getItem('adminToken');
-
+      
       const response0 = await axios.post(
         process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/User', 
         {spec: {filter:"id=='"+email+"'"}}, 
@@ -123,16 +128,16 @@ const Signup = () => {
                 'action': 'fetch',
             },
             headers: {
-                'authorization': token,
+                'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
                 'accept': 'application/json',
                 'content-type': 'application/json'
             }
         }
       );
-      console.log(response0.data)
-      if(response0.data.count!=0)
+      //console.log(response0.data)
+      if(response0.data.count!==0)
       {
-        alert('User exists.')
+       showAlert('User exists.')
         return
       }
 
@@ -149,15 +154,15 @@ const Signup = () => {
                 'institution': inst 
             },
             headers: {
-                'authorization': token,
+                'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
                 'accept': 'application/xml',
                 'content-type': 'application/xml'
             }
         }
       );
-      if(response.status!=200)
+      if(response.status!==200)
       {
-        alert("Sign Up failed. Try again")  // change 
+       showAlert("Sign Up failed. Try again")  // change 
       }
       const response1 = await axios.post(
         process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/GrdbIdentityManager', 
@@ -169,24 +174,25 @@ const Signup = () => {
                 'password': password
             },
             headers: {
-                'authorization': token,
+                'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
                 'accept': 'application/xml',
                 'content-type': 'application/xml'
             }
         }
       );
-      console.log(response1)
-      if(response1.status==200)
+      //console.log(response1)
+      if(response1.status===200)
       {
-        alert("Signed Up. Please sign in")
+       showAlert("Signed Up. Please sign in")
         setSignedUp(true)
       }
       else{
-        alert()
+       showAlert()
       }
     } catch (err) {
       if(err){
-      console.log(err.message) // change 
+      //console.log(err.message) // change to log file
+     showAlert("Error connecting. Please refresh or try again after some time.")
     }
     }
   }

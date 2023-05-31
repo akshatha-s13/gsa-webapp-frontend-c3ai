@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react'
 
 import Recipe from '../components/Recipe'
-import {carbonSourceOptions, defaultPrecision} from "../settings";
+import {defaultPrecision} from "../settings";
 
 const Recipes = ({recipes, isFilter}) => {
   const [carbonSource, setCarbonSource] = useState("All")
