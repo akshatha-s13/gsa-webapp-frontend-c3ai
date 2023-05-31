@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import Property from "../components/Property";
-import {shapeOptions, defaultPrecision} from "../settings";
+import {defaultPrecision} from "../settings";
 
 
 const Properties = ({properties, isFilter}) => {

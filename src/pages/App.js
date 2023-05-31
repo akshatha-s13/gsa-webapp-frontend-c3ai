@@ -1,21 +1,21 @@
 import React, {useState, useEffect, useReducer} from "react";
 import {
-  BrowserRouter as Router, Switch, Route
+  BrowserRouter as Router, Switch, Route, Redirect
 } from "react-router-dom";
 import './App.css';
-
-import {signInWithToken} from "../utils/auth";
+import axios from 'axios'
 import Signin from "./Signin";
 import Signup from "./Signup";
 import ManageGroups from "./ManageGroups";
 import ManageUsers from "./ManageUsers";
-import Home from "./Home";
 import Profile from "./Profile";
 import Navbar from "../components/Navbar";
 import Tool from "./Tool";
 import ExperimentView from "./ExperimentView";
 import toolReducer, {toolDefaultState} from "../reducers/toolReducer";
 import userReducer, {userDefaultState} from "../reducers/userReducer";
+import { showAlert } from '../components/CustomAlert';
+
 export const GlobalContext = React.createContext();
 
 const App = () => {
@@ -51,15 +51,29 @@ const App = () => {
         const token = window.localStorage.getItem('token');
         if (token) {
           try {
-            const response = await signInWithToken(token);
-            window.localStorage.setItem('token', response.token)
-            const payload = {
-              authorId: response.author_id
+            // check
+            const response = await axios.post(
+              process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/User', 
+              {}, 
+              {
+                  params: {
+                      'action': 'fetch'
+                  },
+                  headers: {
+                      'authorization': 'Bearer '+  window.localStorage.getItem('token'),
+                      'accept': 'application/json', //xml
+                      'content-type': 'application/json'
+                  }
+              } 
+            );
+            if(response.status!==200)
+            {
+              showAlert("Sign in again")
             }
-            userDispatch({type: 'SIGN_IN', payload})
           } catch (e) {
             if (e.response && e.response.status === 401)
-              alert('Email or password is incorrect.')
+             showAlert('Signed out')
+            userDispatch({type: 'SIGN_OUT'})
             window.localStorage.removeItem('token')
           }
         } else {
@@ -69,6 +83,16 @@ const App = () => {
       trySignIn();
     }, []
   )
+
+  const RequireAuth = (Component) => {
+    return (props) => {
+      return (
+        userState.signedIn
+        ? <Component {...props} />
+        : <Redirect to="/signin" />
+      )
+    }
+  }
 
   return (
     <GlobalContext.Provider
@@ -82,26 +106,26 @@ const App = () => {
           <Route exact path='/'>
             <Signin/>
           </Route>
-          <Route exact path='/tool'>
-            <Tool/>
-          </Route>
-          <Route path='/tool/experiments'>
-            <ExperimentView/>
-          </Route>
-          <Route path='/profile'>
-            <Profile/>
-          </Route>
           <Route path='/signin'>
             <Signin/>
           </Route>
           <Route path='/signup'>
             <Signup/>
           </Route>
+          <Route exact path='/tool'>
+            {RequireAuth(Tool)}
+          </Route>
+          <Route path='/tool/experiments'>
+            {RequireAuth(ExperimentView)}
+          </Route>
+          <Route path='/profile'>
+            {RequireAuth(Profile)}
+          </Route>
           <Route path='/managegroups'>
-            <ManageGroups/>
+            {RequireAuth(ManageGroups)}
           </Route>
           <Route path='/manageusers'>
-            <ManageUsers/>
+            {RequireAuth(ManageUsers)}
           </Route>
         </Switch>
         <div className='h-96'/>

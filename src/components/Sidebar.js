@@ -1,5 +1,6 @@
 import React, {useContext} from "react";
 import {GlobalContext} from "../pages/App";
+import { showAlert } from '../components/CustomAlert';
 
 const Sidebar = ({texts, refs}) => {
   const {userState} = useContext(GlobalContext)
@@ -15,7 +16,7 @@ const Sidebar = ({texts, refs}) => {
           return (
             <button
               className='w-full p-3 text-white font-bold text-center hover:bg-blue-700 cursor-pointer rounded-b-lg'
-              onClick={() => alert('Please log in to submit data.')}
+              onClick={() =>showAlert('Please log in to submit data.')}
               key={i}>
               {text}
             </button>

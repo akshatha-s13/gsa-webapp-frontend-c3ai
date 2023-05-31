@@ -1,4 +1,4 @@
-import {carbonSourceOptions, catalystOptions, prepNameOptions, shapeOptions, materialNameOptions} from "../settings";
+import {prepNameOptions, materialNameOptions} from "../settings";
 
 export const submissionDefaultState = {
   materialName: materialNameOptions[0],
@@ -14,14 +14,14 @@ export const submissionDefaultState = {
   lengthOfHeatedRegion: 0,
   useCustomSubstrate: false,
   substrateNumber: "",
-  catalyst: catalystOptions[0],
+  catalyst: "",//catalystOptions[0],
   thickness: 0,
   diameter: 0,
   length: 0,
   surfaceArea: 0,
   useCustomRecipe: false,
   recipeNumber: "",
-  carbonSource: carbonSourceOptions[0],
+  carbonSource: "",//carbonSourceOptions[0],
   basePressure: 0,
   preparationSteps: [],
   name: prepNameOptions[0],
@@ -41,7 +41,7 @@ export const submissionDefaultState = {
   numberOfLayers: 0,
   growthCoverage: 0,
   domainSize: 0,
-  shape: shapeOptions[0],
+  //shape: shapeOptions[0],
   authors: [],
   semFiles: [],
   ramanFiles: [],
@@ -52,7 +52,7 @@ export const submissionDefaultState = {
 const submissionReducer = (state, action) => {
   switch (action.type) {
     case 'INIT_SUBMISSION': {
-      console.log(action.payload)
+      //console.log(action.payload)
       return {
         ...state,
         authors: [...state.authors, action.payload]
@@ -309,12 +309,12 @@ const submissionReducer = (state, action) => {
         domainSize: action.payload
       }
     }
-    case 'SHAPE_CHANGE': {
-      return {
-        ...state,
-        shape: action.payload
-      }
-    }
+    // case 'SHAPE_CHANGE': {
+    //   return {
+    //     ...state,
+    //     shape: action.payload
+    //   }
+    // }
     case 'ADD_AUTHOR' : {
       return {
         ...state,

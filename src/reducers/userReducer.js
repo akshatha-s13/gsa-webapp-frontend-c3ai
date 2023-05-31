@@ -9,7 +9,7 @@ export const userDefaultState = {
 const userReducer = (state, action) => {
   switch (action.type) {
     case 'SIGN_IN': {
-      console.log(action.type)
+      //console.log(action.type)
       return {
         ...state,
         signedIn: true,

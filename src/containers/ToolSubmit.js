@@ -3,15 +3,11 @@ import {GlobalContext} from "../pages/App";
 import {
   defaultPrecision,
   materialNameOptions,
-  catalystOptions,
-  carbonSourceOptions,
-  prepNameOptions,
-  shapeOptions,
-  host
+  prepNameOptions
 } from "../settings";
 import submissionReducer, {submissionDefaultState} from "../reducers/submissionReducer";
 import axios from "axios";
-import SearchByCharacterization from "../components/GrresqQueryBox/SearchByCharacterization";
+import { showAlert } from '../components/CustomAlert';
 
 const ToolSubmit = () => {
   const {userState, toolState} = useContext(GlobalContext)
@@ -29,19 +25,19 @@ const ToolSubmit = () => {
               'action': 'fetch'
           },
           headers: {
-              'authorization': window.localStorage.getItem('adminToken'),
+              'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
               'accept': 'application/json', //xml
               'content-type': 'application/json'
           }
       } 
     );
-    console.log(response.data)
+    //console.log(response.data)
     if(response.data.count>0){
       if (response.data.objs[0].grdbGroups){
     setOwnerGroups([...new Set(response.data.objs[0].grdbGroups.map(group => group.id.split('.')[2]))])
       }
     }
-    if(response.status==200){
+    if(response.status===200){
     submissionDispatch({type: 'INIT_SUBMISSION_DEFAULT', payload: 
       {
         environmentConditionsNumber: toolState.environmentConditions[0],
@@ -61,6 +57,7 @@ const ToolSubmit = () => {
     }
   }
   init()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const addAuthor = () => {
@@ -81,7 +78,7 @@ const ToolSubmit = () => {
   }
   const onSubmitExperiment = async() => {
     if (!userState.signedIn) {
-      alert("Please log in before making a new submission.")
+     showAlert("Please log in before making a new submission.")
       return
     }
 
@@ -92,6 +89,8 @@ const ToolSubmit = () => {
     for (const file of submissionState.ramanFiles) {
       formData.append(`raman_${file.name}`, file)
     }
+    
+    
 
     let experimentData = {...submissionState}
     delete experimentData.semFiles
@@ -100,10 +99,10 @@ const ToolSubmit = () => {
     // const stringifiedExperimentData = JSON.stringify(experimentData)
     // formData.append('experimentData', stringifiedExperimentData)
     // axios.post(host + '/experiments/submit', formData).then(function (response) {
-    //   alert(response.data);
+    //  showAlert(response.data);
     // })
     // .catch(function (error) {
-    //   alert(error);
+    //  showAlert(error);
     // });
 
     // me
@@ -189,7 +188,7 @@ const ToolSubmit = () => {
     db.submittedBy = {'id': userState.authorId}
     db.authors = [{'id':userState.authorId}]
     for (const author of data.authors) {
-      if(author.id!=userState.authorId)
+      if(author.id!==userState.authorId)
         db.authors.push({'id':author.id})
     }
 
@@ -208,8 +207,9 @@ const ToolSubmit = () => {
           }
       }
     );
-    alert("Experiment Submitted with ID "+response.data.id)
-    if(response.status==200)
+   showAlert("Experiment Submitted with ID "+response.data.id)
+
+    if(response.status===200)
     {
       const expId = response.data.id;
       // add relation to authors db.authors
@@ -223,17 +223,22 @@ const ToolSubmit = () => {
                 'action':'create'
               },
               headers: {
-                  'authorization': window.localStorage.getItem('adminToken'),
+                  'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
                   'accept': 'application/json',
                   'content-type': 'application/json'
               }
           }
         );
+        if(response1.status!==200)
+        {
+          showAlert("Error linking author and experiment")
+        }
       }  
     }
     }
     catch(e){
-      console.log(e.message)
+      //console.log(e.message)
+     showAlert(e.message)
     }
   }
 
@@ -443,7 +448,7 @@ const ToolSubmit = () => {
               className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
               id="form-catalyst"
               value={submissionState.catalyst}
-              onChange={e => {if(e.target.value=="Other") document.getElementById("form-catalyst-box").disabled=false;submissionDispatch({type: 'CATALYST_CHANGE', payload: e.target.value});}}
+              onChange={e => {if(e.target.value==="Other") document.getElementById("form-catalyst-box").disabled=false;submissionDispatch({type: 'CATALYST_CHANGE', payload: e.target.value});}}
             >
               {toolState.catalysts.map((catalyst) => {
                 return <option key={catalyst}>{catalyst}</option>
@@ -503,7 +508,7 @@ const ToolSubmit = () => {
             />
           </div>
           <span
-            className='md:w-1/6 block text-gray-500 font-bold md:text-left mb-1 md:mb-0 pl-2'>mm&sup2;</span>
+            className='md:w-1/6 block text-gray-500 font-bold md:text-left mb-1 md:mb-0 pl-2'>mm</span>
         </div>
         <div className="md:w-3/4 md:flex md:items-center mb-6">
           <div className="md:w-1/2">
@@ -542,7 +547,7 @@ const ToolSubmit = () => {
               })}
             />
           </div>
-          <span className='md:w-1/6 block text-gray-500 font-bold md:text-left mb-1 md:mb-0 pl-2'>mm</span>
+          <span className='md:w-1/6 block text-gray-500 font-bold md:text-left mb-1 md:mb-0 pl-2'>mm&sup2;</span>
         </div>
       </div>
       :
@@ -1384,6 +1389,7 @@ const ToolSubmit = () => {
       </div>
 
       {/*me add date also later */}
+      {ownerGroups.length > 0  && (
       <div className="md:w-3/4 md:flex md:items-center md:justify-center mb-6 mx-auto">
         <div>
           <label className="block text-gray-500 font-bold md:text-center mb-1 md:mb-0 pr-4"
@@ -1412,6 +1418,7 @@ const ToolSubmit = () => {
           </div>
         </div>
         </div>
+        )}
 
         <div className="md:w-3/4 md:flex md:items-center md:justify-center mb-6 mx-auto">
         <div>
@@ -1429,7 +1436,7 @@ const ToolSubmit = () => {
             })}
             value={submissionState.visibility}
           >  
-          <option key="GROUP">GROUP</option>
+          {ownerGroups.length > 0  && (<option key="GROUP">GROUP</option>)}
           <option key="PRIVATE">PRIVATE</option>
           <option key="PUBLIC">PUBLIC</option>  
           </select>

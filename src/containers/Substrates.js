@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import Substrate from '../components/Substrate'
 import {defaultPrecision} from "../settings";
-import {catalystOptions} from "../settings";
 
 const Substrates = ({substrates, isFilter}) => {
   const [catalyst, setCatalyst] = useState("All")

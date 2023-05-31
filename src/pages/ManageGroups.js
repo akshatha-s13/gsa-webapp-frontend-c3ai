@@ -1,11 +1,13 @@
-import React, {useContext, useState, useEffect} from 'react'
-import {GlobalContext} from "./App";
+import React, {useState, useEffect} from 'react'
+//import {GlobalContext} from "./App";
 import axios from "axios";
+import { showConfirm } from '../components/CustomConfirm';
+import { showAlert } from '../components/CustomAlert';
 
 const ManageGroups = () => {  
-  const {userState} = useContext(GlobalContext)
+  //const {userState} = useContext(GlobalContext)
   const [data, setData] = useState([]);
-  
+  const [flag, setFlag] = useState(1);
   const [addNewInstitution, setAddNewInstitution] = useState(false)
   const [newInstitution, setNewInstitution] = useState('')
   const [institutionOptions, setInstitutionOptions] = useState([])
@@ -31,7 +33,7 @@ const ManageGroups = () => {
               }
           } 
         );
-        console.log(response.data.objs)
+        //console.log(response.data.objs)
         if (response.status === 200) {
           setData(response.data.objs)
         }
@@ -44,7 +46,7 @@ const ManageGroups = () => {
                     'action': 'evaluate'
                 },
                 headers: {
-                    'authorization': window.localStorage.getItem('adminToken'),
+                    'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
                     'accept': 'application/json', //xml
                     'content-type': 'application/json'
                 }
@@ -58,28 +60,29 @@ const ManageGroups = () => {
         } 
 
       } catch (e) {
-        console.log(e)
+        //console.log(e)
+       showAlert(e.message)
       }
     }
     init()
-  }, [])
+  }, [flag])
  
   const onClickCreateBtn = async (e) => {
     e.preventDefault()
     if (groupId === '') {
-      alert('Group ID field is empty.')
+     showAlert('Group ID field is empty.')
       return
     }
     if (groupName === '') {
-      alert('Group name field is empty.')
+     showAlert('Group name field is empty.')
       return
     }
     if (groupDescription === '') {
-      alert('Group description field is empty.')
+     showAlert('Group description field is empty.')
       return
     }
     if (addNewInstitution && newInstitution === '') {
-      alert('Institution field is empty.')
+     showAlert('Institution field is empty.')
       return
     }
     try {
@@ -87,7 +90,7 @@ const ManageGroups = () => {
       const token = window.localStorage.getItem('token');
       const response = await axios.post(
         process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/GrdbIdentityManager', 
-        {}, 
+        '', 
         {
             params: {
                 'action': 'createGrdbGroup',
@@ -103,35 +106,38 @@ const ManageGroups = () => {
             }
         }
       );
-      if(response.status==200)
+      if(response.status===200)
       {
-        alert("New group created")  // change 
-        setData([])
-        // setGroupId('');
-        // setGroupName('');
-        // setGroupDescription('');
-        // setInstitution('');
-        // setNewInstitution('');
-        // setAddNewInstitution(false);
+       showAlert("New group created")  // change 
+        setFlag((prevdata)=>prevdata+1);
+        setGroupId('');
+        setGroupName('');
+        setGroupDescription('');
+        setInstitution('');
+        setNewInstitution('');
+        setAddNewInstitution(false);
       }
       else
       {
-        alert("Creating new group failed. Try again")  // change 
+       showAlert("Creating new group failed. Try again")  // change 
       }
 
     } catch (err) {
       if(err){
-      console.log(err.message) // change 
+      //console.log(err.message) // change 
+     showAlert(err.message)
     }
     }
   }
 
   const handleDelete = async (groupId) => {
-    if (window.confirm("Are you sure you want to delete this group?")) {
+    const confirmed = await showConfirm("Are you sure you want to delete this group?");
+    if (confirmed){
+    //if (window.confirm("Are you sure you want to delete this group?")) {
       try {
         const response = await axios.post(
           process.env.REACT_APP_C3_URL + "/api/1/" + process.env.REACT_APP_C3_TENANT + "/" + process.env.REACT_APP_C3_TAG + "/GrdbGroup",
-          {},
+          '',
           {
             params: {
               'action': "remove",
@@ -139,19 +145,21 @@ const ManageGroups = () => {
             },
             headers: {
               "authorization": "Bearer " + window.localStorage.getItem("token"),
-              "accept": "application/json",
-              "content-type": "application/json",
+              "accept": "application/xml",
+              "content-type": "application/xml",
             },
           }
         );
         if (response.status === 200) {
-          setData((prevData) => prevData.filter((group) => group.id !== groupId));
-          alert("Group deleted successfully.");
+          //setData((prevData) => prevData.filter((group) => group.id !== groupId));
+          setFlag((prevdata)=>prevdata+1);
+         showAlert("Group deleted successfully.");
         } else {
-          alert("Deleting group failed. Try again.");
+         showAlert("Deleting group failed. Try again.");
         }
       } catch (err) {
-        console.log(err.message);
+        //console.log(err.message);
+       showAlert(err.message)
       }
     }
   };

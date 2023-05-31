@@ -1,35 +1,37 @@
 import React, {useContext, useState} from "react"
 import {GlobalContext} from "../../pages/App";
-import {defaultPrecision, shapeOptions} from "../../settings";
+import {defaultPrecision} from "../../settings";
 import {isAddedToCurrentFilters} from "./utils";
+import { showAlert } from '../CustomAlert';
 
 const SearchByCharacterization = () => {
   const [min, setMin] = useState(0)
   const [max, setMax] = useState(9999)
   const [name, setName] = useState("Number of Layers") //change this later - me
-  const [shape, setShape] = useState(shapeOptions[0])
+  //const [shape, setShape] = useState(shapeOptions[0])
   const [numLayers, setNumLayers] = useState(1)
   const {toolState, toolDispatch} = useContext(GlobalContext)
 
   const onClickAdd = () => {
     if (isAddedToCurrentFilters(name, toolState.filters)) {
-      alert(name + ' is already added.')
+     showAlert(name + ' is already added.')
       return
     }
-    if (name === 'Shape') {
-      toolDispatch({
-        type: 'ADD_FILTER',
-        payload: {
-          type: 'KEY_VALUE', category: 'properties', name, value: shape
-        }
-      })
-    } else if (name === 'Number of Layers') {
+    // if (name === 'Shape') {
+    //   toolDispatch({
+    //     type: 'ADD_FILTER',
+    //     payload: {
+    //       type: 'KEY_VALUE', category: 'properties', name, value: shape
+    //     }
+    //   })
+    // } else 
+    if (name === 'Number of Layers') {
       if (numLayers < 0) {
-        alert('Number of Layers cannot be a negative number.')
+       showAlert('Number of Layers cannot be a negative number.')
         return
       }
       if (!Number.isInteger(numLayers)) {
-        alert('Number of Layers cannot be a floating point number.')
+       showAlert('Number of Layers cannot be a floating point number.')
         return
       }
       toolDispatch({
