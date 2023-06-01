@@ -1,6 +1,7 @@
 import React, {useContext, useEffect} from "react";
 import {Line} from "react-chartjs-2";
-//import {Chart} from "chart.js/auto"; // Required for graph
+// eslint-disable-next-line
+import {Chart} from "chart.js/auto"; // Required for graph
 import {ExperimentContext} from "../pages/ExperimentView";
 
 const RecipeGraph = () => {
