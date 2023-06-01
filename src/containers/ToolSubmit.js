@@ -569,7 +569,7 @@ const ToolSubmit = () => {
             value={submissionState.substrateNumber}
           >
             {toolState.substrates.map((substrate) => {
-              return <option key={substrate.id}>{substrate.name}</option>
+              return <option key={substrate.id} value={substrate.id}>{substrate.name}</option>
             })}
           </select>
           <div
@@ -989,7 +989,7 @@ const ToolSubmit = () => {
             value={submissionState.recipeNumber}
           >
             {toolState.recipes.map((recipe) => {
-              return <option key={recipe.id}>{recipe.name}</option>
+              return <option key={recipe.id} value={recipe.id}>{recipe.name}</option>
             })}
           </select>
           <div
@@ -1142,7 +1142,7 @@ const ToolSubmit = () => {
             value={submissionState.propertiesNumber}
           >
             {toolState.properties.map((property) => {
-              return <option key={property.id}>{property.name}</option>
+              return <option key={property.id} value={property.id}>{property.name}</option>
             })}
           </select>
           <div
