@@ -65,24 +65,28 @@ jobs:
       id: apply
       run: |
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          cd "./gsaweb-terraform-live/gsaweb/${{ github.event.inputs.environment }}/server"
-          echo "Deploying from config:  gsaweb/${{ github.event.inputs.environment }}/server"
-          else
+          cd "./gsaweb-terraform-live/gsaweb/${{ github.event.inputs.environment }}"
+          echo "Deploying from config:  gsaweb/${{ github.event.inputs.environment }}"
+          terragrunt run-all apply --terragrunt-non-interactive
+          cd s3 && bucket_name=$(terragrunt output -raw ansible_bucket_name) && cd ..
+          echo "bucket_name=$bucket_name" >> $GITHUB_OUTPUT
+          echo "app_prefix=gsaweb_${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          echo "env=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+        else 
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            cd ./gsaweb-terraform-live/gsaweb/prod/server
-            echo "Deploying from config:  gsaweb/prod/server"
+            cd ./gsaweb-terraform-live/gsaweb/prod
+            echo "Deploying from config:  gsaweb/prod"
+            echo "app_prefix=gsaweb_prod" >> $GITHUB_OUTPUT
+            echo "env=prod" >> $GITHUB_OUTPUT
           else
-            cd ./gsaweb-terraform-live/gsaweb/dev/server
-            echo "Deploying from config:  gsaweb/dev/server"
+            cd ./gsaweb-terraform-live/gsaweb/dev
+            echo "Deploying from config:  gsaweb/dev"
+            echo "app_prefix=gsaweb_dev" >> $GITHUB_OUTPUT
+            echo "env=dev" >> $GITHUB_OUTPUT
           fi
+          terragrunt run-all apply --terragrunt-non-interactive
+          cd s3 && bucket_name=$(terragrunt output -raw ansible_bucket_name) && cd ..
         fi
-        terragrunt apply -auto-approve
-        bucket_name=$(terragrunt output -raw ansible_bucket_name)
-        echo "bucket_name=$bucket_name" >> $GITHUB_OUTPUT
-        app_prefix=$(terragrunt output -raw app_prefix)
-        echo "app_prefix=$app_prefix" >> $GITHUB_OUTPUT
-        env=$(terragrunt output -raw env)
-        echo "env=$env" >> $GITHUB_OUTPUT
 
   build:
     name: 'Build and Deploy'
@@ -128,16 +132,16 @@ jobs:
     - name: Set up environment
       run: |
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          if [ "${{ github.event.inputs.environment }}" == "dev" ]; then
-            echo "${{ secrets.APP_DEV_ENV }}" > .env
-          elif [ "${{ github.event.inputs.environment }}" == "prod" ]; then
+          if [ "${{ github.event.inputs.environment }}" == "prod" ]; then
             echo "${{ secrets.APP_PROD_ENV }}" > .env
+          else
+            echo "${{ secrets.APP_DEV_ENV }}" > .env
           fi
         else
-          if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
-            echo "${{ secrets.APP_DEV_ENV }}" > .env
-          else
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "${{ secrets.APP_PROD_ENV }}" > .env
+          else
+            echo "${{ secrets.APP_DEV_ENV }}" > .env
           fi
         fi
       

@@ -44,5 +44,5 @@ jobs:
       
     - name: Terraform Destroy
       run: |
-        cd "./gsaweb-terraform-live/gsaweb/${{ github.event.inputs.environment }}/server"
-        terragrunt destroy -auto-approve
+        cd "./gsaweb-terraform-live/gsaweb/${{ github.event.inputs.environment }}"
+        terragrunt run-all destroy --terragrunt-non-interactive
