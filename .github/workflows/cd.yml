@@ -67,7 +67,7 @@ jobs:
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
           cd "./gsaweb-terraform-live/gsaweb/${{ github.event.inputs.environment }}"
           echo "Deploying from config:  gsaweb/${{ github.event.inputs.environment }}"
-          terragrunt run-all apply
+          terragrunt run-all apply --terragrunt-non-interactive
           cd s3 && bucket_name=$(terragrunt output -raw ansible_bucket_name) && cd ..
           echo "bucket_name=$bucket_name" >> $GITHUB_OUTPUT
           echo "app_prefix=gsaweb_${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
