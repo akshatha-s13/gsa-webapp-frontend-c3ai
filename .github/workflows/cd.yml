@@ -86,6 +86,7 @@ jobs:
           fi
           terragrunt run-all apply --terragrunt-non-interactive
           cd s3 && bucket_name=$(terragrunt output -raw ansible_bucket_name) && cd ..
+          echo "bucket_name=$bucket_name" >> $GITHUB_OUTPUT
         fi
 
   build:
