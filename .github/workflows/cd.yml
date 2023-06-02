@@ -74,19 +74,18 @@ jobs:
           echo "env=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
         else 
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            cd ./gsaweb-terraform-live/gsaweb/prod/server
-            echo "Deploying from config:  gsaweb/prod/server"
+            cd ./gsaweb-terraform-live/gsaweb/prod
+            echo "Deploying from config:  gsaweb/prod"
+            echo "app_prefix=gsaweb_prod" >> $GITHUB_OUTPUT
+            echo "env=prod" >> $GITHUB_OUTPUT
           else
-            cd ./gsaweb-terraform-live/gsaweb/dev/server
-            echo "Deploying from config:  gsaweb/dev/server"
+            cd ./gsaweb-terraform-live/gsaweb/dev
+            echo "Deploying from config:  gsaweb/dev"
+            echo "app_prefix=gsaweb_dev" >> $GITHUB_OUTPUT
+            echo "env=dev" >> $GITHUB_OUTPUT
           fi
-          terragrunt apply -auto-approve
-          bucket_name=$(terragrunt output -raw ansible_bucket_name)
-          echo "bucket_name=$bucket_name" >> $GITHUB_OUTPUT
-          app_prefix=$(terragrunt output -raw app_prefix)
-          echo "app_prefix=$app_prefix" >> $GITHUB_OUTPUT
-          env=$(terragrunt output -raw env)
-          echo "env=$env" >> $GITHUB_OUTPUT
+          terragrunt run-all apply --terragrunt-non-interactive
+          cd s3 && bucket_name=$(terragrunt output -raw ansible_bucket_name) && cd ..
         fi
 
   build:
