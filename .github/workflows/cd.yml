@@ -133,16 +133,16 @@ jobs:
     - name: Set up environment
       run: |
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          if [ "${{ github.event.inputs.environment }}" == "dev" ]; then
-            echo "${{ secrets.APP_DEV_ENV }}" > .env
-          elif [ "${{ github.event.inputs.environment }}" == "prod" ]; then
+          if [ "${{ github.event.inputs.environment }}" == "prod" ]; then
             echo "${{ secrets.APP_PROD_ENV }}" > .env
+          else
+            echo "${{ secrets.APP_DEV_ENV }}" > .env
           fi
         else
-          if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
-            echo "${{ secrets.APP_DEV_ENV }}" > .env
-          else
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "${{ secrets.APP_PROD_ENV }}" > .env
+          else
+            echo "${{ secrets.APP_DEV_ENV }}" > .env
           fi
         fi
       
