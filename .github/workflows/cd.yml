@@ -1,4 +1,4 @@
-name: Terraform, Build and Deploy
+name: CD Workflow
 on:
   push:
     branches:
@@ -48,6 +48,7 @@ jobs:
         repository: 'nanoMFG/gsaweb-terraform-live'
         path: './gsaweb-terraform-live'
         token: ${{ secrets.TERRAFORM_LIVE_TOKEN }}
+        ref: 'tags/v1.1.0'
       
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
