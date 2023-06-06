@@ -25,6 +25,7 @@ on:
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: 'us-east-2'
   TF_VERSION: '~> 1.4.0'
   TG_VERSION: 'latest'
   NODE_VERSION: '16.x'
@@ -66,8 +67,8 @@ jobs:
       id: apply
       run: |
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          cd "./gsaweb-terraform-live/gsaweb/${{ github.event.inputs.environment }}"
-          echo "Deploying from config:  gsaweb/${{ github.event.inputs.environment }}"
+          cd "./gsaweb-terraform-live/gsaweb/${{ github.event.inputs.environment }}/${{ env.AWS_REGION }}"
+          echo "Deploying from config:  gsaweb/${{ github.event.inputs.environment }}/${{ env.AWS_REGION }}"
           terragrunt run-all apply --terragrunt-non-interactive
           cd ansible_ssm && bucket_name=$(terragrunt output -raw ansible_bucket_name) && cd ..
           echo "bucket_name=$bucket_name" >> $GITHUB_OUTPUT
@@ -75,13 +76,13 @@ jobs:
           echo "env=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
         else 
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            cd ./gsaweb-terraform-live/gsaweb/prod
-            echo "Deploying from config:  gsaweb/prod"
+            cd ./gsaweb-terraform-live/gsaweb/prod/${{ env.AWS_REGION }}
+            echo "Deploying from config:  gsaweb/prod/${{ env.AWS_REGION }}"
             echo "app_prefix=gsaweb_prod" >> $GITHUB_OUTPUT
             echo "env=prod" >> $GITHUB_OUTPUT
           else
-            cd ./gsaweb-terraform-live/gsaweb/dev
-            echo "Deploying from config:  gsaweb/dev"
+            cd ./gsaweb-terraform-live/gsaweb/dev/${{ env.AWS_REGION }}
+            echo "Deploying from config:  gsaweb/dev/${{ env.AWS_REGION }}"
             echo "app_prefix=gsaweb_dev" >> $GITHUB_OUTPUT
             echo "env=dev" >> $GITHUB_OUTPUT
           fi
