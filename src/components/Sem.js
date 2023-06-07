@@ -1,11 +1,11 @@
-import React, {useContext, useEffect, useState} from "react";
-import {ExperimentContext} from "../pages/ExperimentView";
-import TiffToImage from './TiffToImage';
+import React, { useContext, useEffect, useState } from "react";
 import axios from 'axios';
+import {ExperimentContext} from "../pages/ExperimentView";
+import UTIF from "utif";
+import { Stage, Layer, Image } from "react-konva";
 
 const Sem = () => {
-  const {semFiles} = useContext(ExperimentContext)
-  
+  const { semFiles } = useContext(ExperimentContext);
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -14,7 +14,7 @@ const Sem = () => {
         return;
       }
 
-      const urls=[];
+      const urls = [];
 
       for (let i = 0; i < semFiles.length; i++) {
         const semFile = semFiles[i];
@@ -35,12 +35,12 @@ const Sem = () => {
             }
           );
           urls.push(response0.data);
-        }catch(e){
+        } catch (e) {
           console.log(e)
         }
       }
       console.log(urls)
-      setData(urls)
+      setData(urls);
     };
 
     fetchData();
@@ -51,21 +51,69 @@ const Sem = () => {
   }
 
   return (
+    // <>
+    //   {data.map((semFileUrl, i) => (
+    //     <TiffToPng key={i} tiffUrl={semFileUrl} />
+    //   ))}
+    // </>
     <>
-      {data.map((semFileUrl, i) => {
-        
-        // return <img
-        //   src={semFileUrl.boxUrl}
-        //   alt={`Sem file ${i + 1}`}
-        //   className='w-96 h-96 my-4'
-        //   key={i}/> 
-      //   <div>
-      //   <p>HIIIII</p>
-      return <TiffToImage tiffUrl={semFileUrl} />
-      // </div>
-      })}
+    {data.map((semFileUrl, i) => (
+      <div key={i} style={{ margin: "20px", display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <TiffToPng tiffUrl={semFileUrl} />
+      </div>
+    ))}
     </>
-  )  
-}
+  );
+};
 
-export default Sem
+const TiffToPng = ({ tiffUrl }) => {
+  const [image, setImage] = useState(null);
+
+  useEffect(() => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", tiffUrl);
+    xhr.responseType = "arraybuffer";
+    xhr.onload = (e) => {
+      const ifds = UTIF.decode(e.target.response);
+      const firstPageOfTif = ifds[0];
+      UTIF.decodeImages(e.target.response, ifds);
+      const rgba = UTIF.toRGBA8(firstPageOfTif);
+
+      const imageWidth = firstPageOfTif.width;
+      const imageHeight = firstPageOfTif.height;
+
+      const cnv = document.createElement("canvas");
+      cnv.width = imageWidth;
+      cnv.height = imageHeight;
+
+      const ctx = cnv.getContext("2d");
+      const imageData = ctx.createImageData(imageWidth, imageHeight);
+      for (let i = 0; i < rgba.length; i++) {
+        imageData.data[i] = rgba[i];
+      }
+      ctx.putImageData(imageData, 0, 0);
+
+      setImage(cnv);
+    };
+    xhr.send();
+  }, [tiffUrl]);
+
+  if (!image) {
+    return null;
+  }
+
+  return (
+    // <Stage width={image.width} height={image.height}>
+    //   <Layer>
+    //     <Image image={image} />
+    //   </Layer>
+    // </Stage>
+    <Stage width={800} height={600}>
+      <Layer>
+        <Image image={image} width={800} height={600} />
+      </Layer>
+    </Stage>
+  );
+};
+
+export default Sem;
