@@ -32,23 +32,28 @@ const ToolSubmit = () => {
       } 
     );
     //console.log(response.data)
-    if(response.data.count>0){
-      if (response.data.objs[0].grdbGroups){
-    setOwnerGroups([...new Set(response.data.objs[0].grdbGroups.map(group => group.id.split('.')[2]))])
+    if(response.status===200){
+      if(response.data.count>0){
+        if (response.data.objs[0].grdbGroups){
+          setOwnerGroups([...new Set(response.data.objs[0].grdbGroups.map(group => group.id.split('.')[2]))])
+        }
+        else{
+          submissionDispatch({
+            type: 'INIT_SUBMISSION_DEFAULT',
+            payload: {
+              environmentConditionsNumber: toolState.environmentConditions[0],
+              furnaceNumber: toolState.furnaces[0],
+              recipeNumber: toolState.recipes[0].id,
+              propertiesNumber: toolState.properties[0].id,
+              substrateNumber: toolState.substrates[0].id,
+              ownerNumber: "",
+              catalyst: toolState.catalysts[0],
+              carbonSource: toolState.carbonSource[0]
+            }
+          });
+        }
       }
     }
-    if(response.status===200){
-    submissionDispatch({type: 'INIT_SUBMISSION_DEFAULT', payload: 
-      {
-        environmentConditionsNumber: toolState.environmentConditions[0],
-        furnaceNumber: toolState.furnaces[0],
-        recipeNumber: toolState.recipes[0].id,
-        propertiesNumber: toolState.properties[0].id,
-        substrateNumber: toolState.substrates[0].id,
-        ownerNumber: ownerGroups[0]
-      }
-    })
-  }
     for (const author of toolState.authors) {
       if (author.id === userState.authorId) {
         submissionDispatch({type: 'INIT_SUBMISSION', payload: author})
@@ -59,6 +64,22 @@ const ToolSubmit = () => {
   init()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+  useEffect(()=>{
+    submissionDispatch({
+      type: 'INIT_SUBMISSION_DEFAULT',
+      payload: {
+        environmentConditionsNumber: toolState.environmentConditions[0],
+        furnaceNumber: toolState.furnaces[0],
+        recipeNumber: toolState.recipes[0].id,
+        propertiesNumber: toolState.properties[0].id,
+        substrateNumber: toolState.substrates[0].id,
+        ownerNumber: ownerGroups[0],
+        catalyst: toolState.catalysts[0],
+        carbonSource: toolState.carbonSource[0]
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[ownerGroups])
 
   const addAuthor = () => {
     for (const author of submissionState.authors) {
@@ -108,75 +129,75 @@ const ToolSubmit = () => {
     // me
     let data = experimentData
     let db = {}
-    if (data.useCustomEnvironmentConditions) {
-      const ambient_temperature = data.ambientTemperature ? data.ambientTemperature : null;
-      const dew_point = data.dewPoint ? data.dewPoint : null;
-      db.environmentConditions = {'ambientTemperature':ambient_temperature,'dewPoint':dew_point}
-    } else {
+    // if (data.useCustomEnvironmentConditions) {
+    //   const ambient_temperature = data.ambientTemperature //? data.ambientTemperature : null;
+    //   const dew_point = data.dewPoint //? data.dewPoint : null;
+    //   db.environmentConditions = {'ambientTemperature':ambient_temperature,'dewPoint':dew_point}
+    // } else {
       db.environmentConditions = {'id': data.environmentConditionsNumber}
-    }
+    //}
     
-    if (data.useCustomFurnace) {
-      const tube_diameter = data.tubeDiameter ? data.tubeDiameter : null;
-      const cross_sectional_area = data.crossSectionalArea ? data.crossSectionalArea : null;
-      const tube_length = data.tubeLength ? data.tubeLength : null;
-      const length_of_heated_region = data.lengthOfHeatedRegion ? data.lengthOfHeatedRegion : null;
-      db.furnace = {'tubeDiameter': tube_diameter, 'crossSectionalArea': cross_sectional_area, 'tubeLength': tube_length, 'lengthOfHeatedRegion': length_of_heated_region};
-    } else {
+    // if (data.useCustomFurnace) {
+    //   const tube_diameter = data.tubeDiameter //? data.tubeDiameter : null;
+    //   const cross_sectional_area = data.crossSectionalArea //? data.crossSectionalArea : null;
+    //   const tube_length = data.tubeLength //? data.tubeLength : null;
+    //   const length_of_heated_region = data.lengthOfHeatedRegion //? data.lengthOfHeatedRegion : null;
+    //   db.furnace = {'tubeDiameter': tube_diameter, 'crossSectionalArea': cross_sectional_area, 'tubeLength': tube_length, 'lengthOfHeatedRegion': length_of_heated_region};
+    // } else {
       db.furnace = {'id': data.furnaceNumber}
-    }
+    //}
     
-    if (data.useCustomSubstrate) {
-      const catalyst = data.catalyst ? data.catalyst : null;
-      const thickness = data.thickness ? data.thickness : null;
-      const diameter = data.diameter ? data.diameter : null;
-      const length = data.length ? data.length : null;
-      const surface_area = data.surfaceArea ? data.surfaceArea : null;
-      db.substrate = {'catalyst':catalyst, 'thickness':thickness, 'diameter': diameter, 'length':length, 'surfaceArea':surface_area};
-    } else {
+    // if (data.useCustomSubstrate) {
+    //   const catalyst = data.catalyst //? data.catalyst : null;
+    //   const thickness = data.thickness //? data.thickness : null;
+    //   const diameter = data.diameter //? data.diameter : null;
+    //   const length = data.length //? data.length : null;
+    //   const surface_area = data.surfaceArea //? data.surfaceArea : null;
+    //   db.substrate = {'catalyst':catalyst, 'thickness':thickness, 'diameter': diameter, 'length':length, 'surfaceArea':surface_area};
+    // } else {
       db.substrate = {'id':data.substrateNumber};
-    }
+    //}
     
-    if (data.useCustomProperties){
-      const average_thickness_of_growth = data.avgThicknessOfGrowth || null;
-      const standard_deviation_of_growth = data.stdDevOfGrowth || null;
-      const number_of_layers = data.numberOfLayers || null;
-      const growth_coverage = data.growthCoverage || null;
-      const domain_size = data.domainSize || null;
-      db.properties = {
-        'averageThicknessOfGrowth': average_thickness_of_growth,
-        'standardDeviationOfGrowth': standard_deviation_of_growth,
-        'numberOfLayers': number_of_layers,
-        'growthCoverage': growth_coverage,
-        'domainSize': domain_size,
-      } 
-    } else{
+    // if (data.useCustomProperties){
+    //   const average_thickness_of_growth = data.avgThicknessOfGrowth //|| null;
+    //   const standard_deviation_of_growth = data.stdDevOfGrowth //|| null;
+    //   const number_of_layers = data.numberOfLayers //|| null;
+    //   const growth_coverage = data.growthCoverage //|| null;
+    //   const domain_size = data.domainSize //|| null;
+    //   db.properties = [{
+    //     'averageThicknessOfGrowth': average_thickness_of_growth,
+    //     'standardDeviationOfGrowth': standard_deviation_of_growth,
+    //     'numberOfLayers': number_of_layers,
+    //     'growthCoverage': growth_coverage,
+    //     'domainSize': domain_size,
+    //   }] 
+    // } else{
       db.properties = [{'id':data.propertiesNumber}];
-    }
+    //}
            
-    if (data.useCustomRecipe) {
-      const carbon_source = data.carbonSource ? data.carbonSource : null;
-      const base_pressure = data.basePressure ? data.basePressure : null;
-      db.recipe = {'carbonSource':carbon_source, 'basePressure':base_pressure};
-    } else {
+    // if (data.useCustomRecipe) {
+    //   const carbon_source = data.carbonSource //? data.carbonSource : null;
+    //   const base_pressure = data.basePressure //? data.basePressure : null;
+    //   db.recipe = {'carbonSource':carbon_source, 'basePressure':base_pressure};
+    // } else {
       db.recipe = {'id':data.recipeNumber};
-    }
+    //}
     
-    for (let i = 0; i < data.preparationSteps.length; i++) {
-      const prep_step = data.preparationSteps[i];
-      db.preparationStep = {
-      'name' : prep_step.name || null,
-      'duration' : prep_step.duration || null,
-      'furnaceTemperature' : prep_step.furnaceTemperature || null,
-      'furnacePressure' : prep_step.furnacePressure || null,
-      'sampleLocation' : prep_step.sampleLocation || null,
-      'heliumFlowRate' : prep_step.heliumFlowRate || null,
-      'hydrogenFlowRate' : prep_step.hydrogenFlowRate || null,
-      'carbonSourceFlowRate' : prep_step.carbonSourceFlowRate || null,
-      'argonFlowRate' : prep_step.argonFlowRate || null,
-      'coolingRate' : prep_step.coolingRate || null,
-      }
-    }
+    // for (let i = 0; i < data.preparationSteps.length; i++) {
+    //   const prep_step = data.preparationSteps[i];
+    //   db.preparationStep = {
+    //   'name' : prep_step.name ,//||null,
+    //   'duration' : prep_step.duration ,//||null,
+    //   'furnaceTemperature' : prep_step.furnaceTemperature ,//||null,
+    //   'furnacePressure' : prep_step.furnacePressure ,//||null,
+    //   'sampleLocation' : prep_step.sampleLocation ,//||null,
+    //   'heliumFlowRate' : prep_step.heliumFlowRate ,//||null,
+    //   'hydrogenFlowRate' : prep_step.hydrogenFlowRate ,//||null,
+    //   'carbonSourceFlowRate' : prep_step.carbonSourceFlowRate ,//||null,
+    //   'argonFlowRate' : prep_step.argonFlowRate ,//||null,
+    //   'coolingRate' : prep_step.coolingRate ,//||null,
+    //   }
+    // }
 
     if (data.materialName) {
       db.materialName = data.materialName;
@@ -186,12 +207,11 @@ const ToolSubmit = () => {
     db.owner = data.ownerNumber;
     db.visibility = data.visibility;
     db.submittedBy = {'id': userState.authorId}
-    db.authors = [{'id':userState.authorId}]
+    db.authors = []
     for (const author of data.authors) {
-      if(author.id!==userState.authorId)
         db.authors.push({'id':author.id})
     }
-
+    console.log(db)
     try{
     const response = await axios.post(
       process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/Experiment', 
@@ -208,10 +228,140 @@ const ToolSubmit = () => {
       }
     );
    showAlert("Experiment Submitted with ID "+response.data.id)
-
     if(response.status===200)
     {
       const expId = response.data.id;
+
+      // upload raman file
+      async function uploadFile(file) {
+        const contentType = file.type;
+        const contentEncoding = "utf-8";
+        const fileContent = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (event) => resolve(event.target.result);
+          reader.readAsDataURL(file);
+        });
+
+        const base64Content = fileContent.split(",")[1];
+        const content = base64Content;
+
+        const response1 = await axios.post(
+          process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/File',
+          {
+            urlOrEncodedPath: "RamanFile/"+submissionState.ownerNumber+"/"+expId+"/"+file.name,
+            content,
+            contentType,
+            contentEncoding,
+          },
+          {
+            params: { action: "createFile" },
+            headers: {
+              authorization: "Bearer "+window.localStorage.getItem("token"),
+              accept: "application/json",
+              "content-type": "application/json",
+            },
+          }
+        );
+
+        //console.log(response1);
+
+        if (response1.status === 200) {
+          const response2 = await axios.post(
+            `${process.env.REACT_APP_C3_URL}/api/1/${process.env.REACT_APP_C3_TENANT}/${process.env.REACT_APP_C3_TAG}/RamanFile`,
+            {
+              this: {
+                experiment: { id: expId },
+                wavelength: 532,
+                filename: file.name,
+                file: response1.data,
+              },
+            },
+            {
+              params: { action: "create" },
+              headers: {
+                authorization: `Bearer ${window.localStorage.getItem("token")}`,
+                accept: "application/json",
+                "content-type": "application/json",
+              },
+            }
+          );
+          
+          //console.log(response2);
+          if (response2.status !== 200)
+          {
+              showAlert("Error creating Raman File")
+          }
+        }
+      }
+
+      const uploadPromises = Array.from(submissionState.ramanFiles).map(uploadFile);
+      await Promise.all(uploadPromises);
+
+      // upload sem files
+
+      async function uploadSemFile(file) {
+        const contentType = file.type;
+        const contentEncoding = "utf-8";
+        const fileContent = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (event) => resolve(event.target.result);
+          reader.readAsDataURL(file);
+        });
+
+        const base64Content = fileContent.split(",")[1];
+        const content = base64Content;
+
+        const response1 = await axios.post(
+          process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/File',
+          {
+            urlOrEncodedPath: "SemFile/"+submissionState.ownerNumber+"/"+expId+"/"+file.name,
+            content,
+            contentType,
+            contentEncoding,
+          },
+          {
+            params: { action: "createFile" },
+            headers: {
+              authorization: "Bearer "+window.localStorage.getItem("token"),
+              accept: "application/json",
+              "content-type": "application/json",
+            },
+          }
+        );
+
+        //console.log(response1);
+
+        if (response1.status === 200) {
+          const response2 = await axios.post(
+            `${process.env.REACT_APP_C3_URL}/api/1/${process.env.REACT_APP_C3_TENANT}/${process.env.REACT_APP_C3_TAG}/SemFile`,
+            {
+              this: {
+                experiment: { id: expId },
+                filename: file.name,
+                file: response1.data,
+              },
+            },
+            {
+              params: { action: "create" },
+              headers: {
+                authorization: `Bearer ${window.localStorage.getItem("token")}`,
+                accept: "application/json",
+                "content-type": "application/json",
+              },
+            }
+          );
+          
+          //console.log(response2);
+          if (response2.status !== 200)
+          {
+              showAlert("Error creating Sem File")
+          }
+        }
+      }
+
+      const uploadPromisesSem = Array.from(submissionState.semFiles).map(uploadSemFile);
+      await Promise.all(uploadPromisesSem);
+
       // add relation to authors db.authors
       for (const author of data.authors) {
         const authorId = author.id;
@@ -241,6 +391,223 @@ const ToolSubmit = () => {
      showAlert(e.message)
     }
   }
+
+  const saveEnvironmentConditions = async () => {
+    const { ambientTemperature, dewPoint } = submissionState;
+    try {
+      const response = await axios.post(
+        process.env.REACT_APP_C3_URL + '/api/1/' + process.env.REACT_APP_C3_TENANT + '/' + process.env.REACT_APP_C3_TAG + '/EnvironmentConditions',
+        {
+          this: {
+            ambientTemperature: ambientTemperature,
+            dewPoint: dewPoint
+          }
+        },
+        {
+          params: {
+            'action':'create'
+          },
+          headers: {
+            authorization: 'Bearer ' + window.localStorage.getItem('token'),
+            'accept': 'application/json',
+            'content-type': 'application/json'
+          }
+        }
+      );
+      submissionDispatch({ type: 'ENVIRONMENT_CONDITIONS_NUMBER_CHANGE', payload: response.data.id });
+      // submissionDispatch({
+      //   type: 'SET_CUSTOM_ENVIRONMENT_CONDITIONS',
+      //   payload: false
+      // })
+      showAlert('Environment Conditions Saved with ID ' + response.data.id);
+    } catch (error) {
+      console.log(error);
+      showAlert('Error saving Environment Conditions');
+    }
+  };
+
+  const saveFurnace = async () => {
+    const { tubeDiameter, crossSectionalArea, tubeLength, lengthOfHeatedRegion } = submissionState;
+    try {
+      const response = await axios.post(
+        process.env.REACT_APP_C3_URL + '/api/1/' + process.env.REACT_APP_C3_TENANT + '/' + process.env.REACT_APP_C3_TAG + '/Furnace',
+        {
+          this: {
+            tubeDiameter: tubeDiameter,
+            crossSectionalArea: crossSectionalArea,
+            tubeLength: tubeLength,
+            lengthOfHeatedRegion: lengthOfHeatedRegion
+          }
+        },
+        {
+          params: {
+            'action':'create'
+          },
+          headers: {
+            authorization: 'Bearer ' + window.localStorage.getItem('token'),
+            'accept': 'application/json',
+            'content-type': 'application/json'
+          }
+        }
+      );
+      submissionDispatch({ type: 'FURNACE_NUMBER_CHANGE', payload: response.data.id });
+      showAlert('Furnace Saved with ID ' + response.data.id);
+    } catch (error) {
+      console.log(error);
+      showAlert('Error saving Furnace');
+    }
+  };
+  
+  const saveSubstrate = async () => {
+    const { substrateNumber, catalyst, thickness, diameter, length, surfaceArea } = submissionState;
+    try {
+      const response = await axios.post(
+        process.env.REACT_APP_C3_URL + '/api/1/' + process.env.REACT_APP_C3_TENANT + '/' + process.env.REACT_APP_C3_TAG + '/Substrate',
+        {
+          this: {
+            name: substrateNumber,
+            catalyst: catalyst,
+            thickness: thickness,
+            diameter: diameter,
+            length: length,
+            surfaceArea: surfaceArea
+          }
+        },
+        {
+          params: {
+            'action':'create'
+          },
+          headers: {
+            authorization: 'Bearer ' + window.localStorage.getItem('token'),
+            'accept': 'application/json',
+            'content-type': 'application/json'
+          }
+        }
+      );
+      submissionDispatch({ type: 'SUBSTRATE_NUMBER_CHANGE', payload: response.data.id });
+      showAlert('Substrate Saved');// with ID ' + response.data.id);
+    } catch (error) {
+      console.log(error);
+      showAlert('Error saving Substrate');
+    }
+  };
+  
+  const saveProperties = async () => {
+    const {
+      avgThicknessOfGrowth,
+      stdDevOfGrowth,
+      numberOfLayers,
+      growthCoverage,
+      domainSize,
+      propertiesNumber
+    } = submissionState;
+  
+    try {
+      const response = await axios.post(
+        process.env.REACT_APP_C3_URL + '/api/1/' + process.env.REACT_APP_C3_TENANT + '/' + process.env.REACT_APP_C3_TAG + '/Properties',
+        {
+          this: {
+            averageThicknessOfGrowth: avgThicknessOfGrowth,
+            standardDeviationOfGrowth: stdDevOfGrowth,
+            numberOfLayers: numberOfLayers,
+            growthCoverage: growthCoverage,
+            domainSize: domainSize,
+            name: propertiesNumber
+          }
+        },
+        {
+          params: {
+            'action': 'create'
+          },
+          headers: {
+            authorization: 'Bearer ' + window.localStorage.getItem('token'),
+            'accept': 'application/json',
+            'content-type': 'application/json'
+          }
+        }
+      );
+  
+      submissionDispatch({ type: 'PROPERTIES_NUMBER_CHANGE', payload: response.data.id });
+      showAlert('Properties Saved'); //with ID ' + response.data.id);
+    } catch (error) {
+      console.log(error);
+      showAlert('Error saving Properties');
+    }
+  };
+
+  const saveRecipe = async () => {
+    const { recipeNumber, carbonSource, basePressure, preparationSteps } = submissionState;
+
+    try {
+      const response = await axios.post(
+        process.env.REACT_APP_C3_URL + '/api/1/' + process.env.REACT_APP_C3_TENANT + '/' + process.env.REACT_APP_C3_TAG + '/Recipe',
+        {
+          this: {
+            name: recipeNumber,
+            carbonSource: carbonSource,
+            basePressure: basePressure
+          }
+        },
+        {
+          params: {
+            'action':'create'
+          },
+          headers: {
+            authorization: 'Bearer ' + window.localStorage.getItem('token'),
+            'accept': 'application/json',
+            'content-type': 'application/json'
+          }
+        }
+      );
+      submissionDispatch({ type: 'RECIPE_NUMBER_CHANGE', payload: response.data.id });
+      showAlert('Recipe Saved');// with ID ' + response.data.id);
+
+      for (let i = 0; i < preparationSteps.length; i++) {
+        const prep_step = preparationSteps[i];
+        let preparationStep = {
+        'recipe' : {'id': response.data.id},
+        'name' : prep_step.name ,//||null,
+        'duration' : prep_step.duration ,//||null,
+        'furnaceTemperature' : prep_step.furnaceTemperature ,//||null,
+        'furnacePressure' : prep_step.furnacePressure ,//||null,
+        'sampleLocation' : prep_step.sampleLocation ,//||null,
+        'heliumFlowRate' : prep_step.heliumFlowRate ,//||null,
+        'hydrogenFlowRate' : prep_step.hydrogenFlowRate ,//||null,
+        'carbonSourceFlowRate' : prep_step.carbonSourceFlowRate ,//||null,
+        'argonFlowRate' : prep_step.argonFlowRate ,//||null,
+        'coolingRate' : prep_step.coolingRate ,//||null,
+        }
+        try {
+          await axios.post(
+            process.env.REACT_APP_C3_URL + '/api/1/' + process.env.REACT_APP_C3_TENANT + '/' + process.env.REACT_APP_C3_TAG + '/PreparationStep',
+            {
+              this: preparationStep
+            },
+            {
+              params: {
+                'action':'create'
+              },
+              headers: {
+                authorization: 'Bearer ' + window.localStorage.getItem('token'),
+                'accept': 'application/json',
+                'content-type': 'application/json'
+              }
+            }
+          );
+          //submissionDispatch({ type: 'RECIPE_NUMBER_CHANGE', payload: response.data.id });
+          //showAlert('Preparation Step Saved');
+        } catch (error) {
+          console.log(error);
+          showAlert('Error saving Preparation Step');
+        }
+      }
+  
+    } catch (error) {
+      console.log(error);
+      showAlert('Error saving Recipe');
+    }
+  };
+  
 
   const environmentConditionsForm =
     submissionState.useCustomEnvironmentConditions
@@ -285,6 +652,14 @@ const ToolSubmit = () => {
           </div>
           <span className='block text-gray-500 font-bold md:text-left mb-1 md:mb-0 pl-2'>&deg;C</span>
         </div>
+
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2"
+          onClick={saveEnvironmentConditions}
+        >
+          Save
+        </button>
+
       </div>
       :
       <>
@@ -400,6 +775,14 @@ const ToolSubmit = () => {
           </div>
           <span className='block text-gray-500 font-bold md:text-left mb-1 md:mb-0 pl-2'>mm</span>
         </div>
+
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2"
+          onClick={saveFurnace}
+        >
+          Save
+        </button>
+
       </div>
       :
       <>
@@ -462,7 +845,7 @@ const ToolSubmit = () => {
               <input
               disabled="disabled"
               className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
-              id="form-catalyst-box" type="text" value={submissionState.catalyst} placeholder="Enter Other Catalyst"
+              id="form-catalyst-box" type="text"  placeholder="Enter Other Catalyst" //value={submissionState.catalyst}
               onChange={e => submissionDispatch({
                 type: 'CATALYST_CHANGE',
                 payload: e.target.value
@@ -549,6 +932,36 @@ const ToolSubmit = () => {
           </div>
           <span className='md:w-1/6 block text-gray-500 font-bold md:text-left mb-1 md:mb-0 pl-2'>mm&sup2;</span>
         </div>
+
+        <div className="md:w-3/4 md:flex md:items-center mb-6">
+          <div className="md:w-1/2">
+            <label className="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4" htmlFor="form-substrate-id">
+              Substrate Number
+            </label>
+          </div>
+          <div className="md:w-2/6">
+            <input
+              className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
+              id="form-substrate-id"
+              type="text"
+              placeholder="Enter Substrate Number"
+              //value={submissionState.substrateNumber}
+              onChange={e =>
+                submissionDispatch({
+                  type: 'SUBSTRATE_NUMBER_CHANGE',
+                  payload: e.target.value
+                })
+              }
+            />
+          </div>
+        </div>
+
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2"
+          onClick={saveSubstrate}
+        >
+          Save
+        </button>
       </div>
       :
       <>
@@ -969,6 +1382,37 @@ const ToolSubmit = () => {
         </div>
         <hr className='mb-2'/>
         {prepStepForm}
+
+        <div className="md:w-3/4 md:flex md:items-center mb-6">
+          <div className="md:w-1/2">
+            <label className="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4" htmlFor="form-recipe-id">
+              Recipe Number
+            </label>
+          </div>
+          <div className="md:w-2/6">
+            <input
+              className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
+              id="form-recipe-id"
+              type="text"
+              placeholder="Enter Recipe Number"
+              //value={submissionState.recipeNumber}
+              onChange={e =>
+                submissionDispatch({
+                  type: 'RECIPE_NUMBER_CHANGE',
+                  payload: e.target.value
+                })
+              }
+            />
+          </div>
+        </div>
+
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2"
+          onClick={saveRecipe}
+        >
+          Save
+        </button>
+
       </div>
       :
       <>
@@ -1122,6 +1566,35 @@ const ToolSubmit = () => {
             </select>
           </div>
         </div> */}
+        <div className="md:w-3/4 md:flex md:items-center mb-6">
+          <div className="md:w-1/2">
+            <label className="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4" htmlFor="form-properties-id">
+              Properties Number
+            </label>
+          </div>
+          <div className="md:w-2/6">
+            <input
+              className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
+              id="form-properties-id"
+              type="text"
+              placeholder="Enter Properties Number"
+              //value={submissionState.propertiesNumber}
+              onChange={e =>
+                submissionDispatch({
+                  type: 'PROPERTIES_NUMBER_CHANGE',
+                  payload: e.target.value
+                })
+              }
+            />
+          </div>
+        </div>
+
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2"
+          onClick={saveProperties}
+        >
+          Save
+        </button>
       </div>
       :
       <>
@@ -1249,7 +1722,7 @@ const ToolSubmit = () => {
       <h4 className='text-center text-3xl font-bold mb-4'>Environment Conditions</h4>
       <div className="md:flex md:items-center md:justify-center mb-6">
         <label className="block text-gray-500 font-bold">
-          <input className="mr-2 leading-tight" type="checkbox"
+          <input className="mr-2 leading-tight" type="checkbox" checked={submissionState.useCustomEnvironmentConditions} id="custom-env-checkbox"
                  onChange={e => submissionDispatch({
                    type: 'SET_CUSTOM_ENVIRONMENT_CONDITIONS',
                    payload: e.target.checked
@@ -1266,7 +1739,7 @@ const ToolSubmit = () => {
       <h4 className='text-center text-3xl font-bold mb-4'>Furnace</h4>
       <div className="md:flex md:items-center md:justify-center mb-6">
         <label className="block text-gray-500 font-bold">
-          <input className="mr-2 leading-tight" type="checkbox"
+          <input className="mr-2 leading-tight" type="checkbox" id="custom-fur-checkbox"
                  onChange={e => submissionDispatch({type: 'SET_CUSTOM_FURNACE', payload: e.target.checked})}/>
           <span className="text-sm">
               I will upload a new Furnace
@@ -1280,7 +1753,7 @@ const ToolSubmit = () => {
       <h4 className='text-center text-3xl font-bold mb-4'>Substrate</h4>
       <div className="md:flex md:items-center md:justify-center mb-6">
         <label className="block text-gray-500 font-bold">
-          <input className="mr-2 leading-tight" type="checkbox"
+          <input className="mr-2 leading-tight" type="checkbox" id="custom-sub-checkbox"
                  onChange={e => submissionDispatch({
                    type: 'SET_CUSTOM_SUBSTRATE',
                    payload: e.target.checked
@@ -1298,7 +1771,7 @@ const ToolSubmit = () => {
       <h4 className='text-center text-3xl font-bold mb-4'>Properties</h4>
       <div className="md:flex md:items-center md:justify-center mb-6">
         <label className="block text-gray-500 font-bold">
-          <input className="mr-2 leading-tight" type="checkbox"
+          <input className="mr-2 leading-tight" type="checkbox" id="custom-prop-checkbox"
                  onChange={e => submissionDispatch({
                    type: 'SET_CUSTOM_PROPERTIES',
                    payload: e.target.checked
@@ -1318,7 +1791,7 @@ const ToolSubmit = () => {
       <h4 className='text-center text-3xl font-bold mb-4'>Recipe</h4>
       <div className="md:flex md:items-center md:justify-center mb-6">
         <label className="block text-gray-500 font-bold">
-          <input className="mr-2 leading-tight" type="checkbox"
+          <input className="mr-2 leading-tight" type="checkbox" id="custom-rec-checkbox"
                  onChange={e => submissionDispatch({type: 'SET_CUSTOM_RECIPE', payload: e.target.checked})}/>
           <span className="text-sm">
               I will upload a new Recipe
@@ -1393,14 +1866,14 @@ const ToolSubmit = () => {
       <div className="md:w-3/4 md:flex md:items-center md:justify-center mb-6 mx-auto">
         <div>
           <label className="block text-gray-500 font-bold md:text-center mb-1 md:mb-0 pr-4"
-                 htmlFor="env-con-submit">
+                 htmlFor="owner-submit">
             Owner
           </label>
         </div>
         <div className="md:w-1/3 relative">
           <select
             className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-            id="env-con-submit"
+            id="owner-submit"
             onChange={e => submissionDispatch({
               type: 'OWNER_CHANGE', payload: e.target.value
             })}
@@ -1423,14 +1896,14 @@ const ToolSubmit = () => {
         <div className="md:w-3/4 md:flex md:items-center md:justify-center mb-6 mx-auto">
         <div>
           <label className="block text-gray-500 font-bold md:text-center mb-1 md:mb-0 pr-4"
-                 htmlFor="env-con-submit">
+                 htmlFor="visibility-submit">
             Visibilty
           </label>
         </div>
         <div className="md:w-1/3 relative">
           <select
             className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-            id="env-con-submit"
+            id="visibility-submit"
             onChange={e => submissionDispatch({
               type: 'VISIBILITY_CHANGE', payload: e.target.value
             })}

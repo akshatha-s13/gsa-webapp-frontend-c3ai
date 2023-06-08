@@ -52,10 +52,14 @@ export const submissionDefaultState = {
 const submissionReducer = (state, action) => {
   switch (action.type) {
     case 'INIT_SUBMISSION': {
-      //console.log(action.payload)
-      return {
-        ...state,
-        authors: [...state.authors, action.payload]
+      const existingAuthor = state.authors.find(author => author.id === action.payload.id);
+      if (existingAuthor) {
+        return state;
+      } else {
+        return {
+          ...state,
+          authors: [...state.authors, action.payload]
+        };
       }
     }
     case 'INIT_SUBMISSION_DEFAULT': {
@@ -66,7 +70,9 @@ const submissionReducer = (state, action) => {
         recipeNumber: action.payload.recipeNumber,
         propertiesNumber: action.payload.propertiesNumber,
         substrateNumber: action.payload.substrateNumber,
-        ownerNumber: action.payload.ownerNumber
+        ownerNumber: action.payload.ownerNumber,
+        catalyst: action.payload.catalyst,
+        carbonSource: action.payload.carbonSource
       }
     }
     case 'OWNER_CHANGE': {
