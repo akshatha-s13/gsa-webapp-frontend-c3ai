@@ -19,7 +19,7 @@ const ToolSubmit = () => {
     const init = async () => {
       const response = await axios.post(
       process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/Author', 
-      {spec: {include: 'grdbGroups.this',filter:"id=='"+userState.authorId+"'"}}, 
+      {spec: {include: 'grdbGroups',filter:"id=='"+userState.authorId+"'"}}, 
       {
           params: {
               'action': 'fetch'
@@ -35,7 +35,7 @@ const ToolSubmit = () => {
     if(response.status===200){
       if(response.data.count>0){
         if (response.data.objs[0].grdbGroups){
-          setOwnerGroups([...new Set(response.data.objs[0].grdbGroups.map(group => group.id.split('.')[2]))])
+          setOwnerGroups([...new Set(response.data.objs[0].grdbGroups.map(group => group.id))])
         }
         else{
           submissionDispatch({
@@ -831,17 +831,18 @@ const ToolSubmit = () => {
               className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
               id="form-catalyst"
               value={submissionState.catalyst}
-              onChange={e => {if(e.target.value==="Other") document.getElementById("form-catalyst-box").disabled=false;submissionDispatch({type: 'CATALYST_CHANGE', payload: e.target.value});}}
+              onChange={e => {submissionDispatch({type: 'CATALYST_CHANGE', payload: e.target.value});}} 
+              // if(e.target.value==="Other") document.getElementById("form-catalyst-box").disabled=false;
             >
               {toolState.catalysts.map((catalyst) => {
                 return <option key={catalyst}>{catalyst}</option>
               })}
-              <option key="Other">Other</option>
+              {/* <option key="Other">Other</option> */} 
             </select>
           </div>
         </div>
 
-        <div className="md:w-2/3">
+        {/* <div className="md:w-2/3">
               <input
               disabled="disabled"
               className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
@@ -851,8 +852,8 @@ const ToolSubmit = () => {
                 payload: e.target.value
               })}
               />
-        </div>
-        <br></br>
+        </div> 
+        <br></br> */}
 
         <div className="md:w-3/4 md:flex md:items-center mb-6">
           <div className="md:w-1/2">
