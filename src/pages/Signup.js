@@ -215,7 +215,7 @@ const Signup = () => {
         <div className="md:w-1/3">
           <input
             className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
-            id="email" type="email" placeholder="Email"
+            id="email" type="email" placeholder="Email" autoComplete="on"
             value={email}
             onChange={e => {
               setEmail(e.target.value)
@@ -322,6 +322,7 @@ const Signup = () => {
           <div className="md:w-1/3 relative">
             <select
               className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
+              id="institution"
               value={institution}
               onChange={e => {
                 setInstitution(e.target.value)
@@ -340,10 +341,10 @@ const Signup = () => {
         </div>}
       <div className="mx-auto md:flex md:items-center mb-6">
         <label className="block text-black md:text-right mb-1 md:mb-0 pr-4"
-               htmlFor="lastname">
+               htmlFor="institution-checkbox">
           Can't see your institution?
         </label>
-        <input type='checkbox'
+        <input type='checkbox' id='institution-checkbox'
                onChange={e => setAddNewInstitution(e.target.checked)}
         />
       </div>
@@ -351,7 +352,7 @@ const Signup = () => {
         <div className="md:w-full md:flex md:items-center mb-6">
           <div className="md:w-1/3">
             <label className="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4"
-                   htmlFor="lastname">
+                   htmlFor="institution">
               Institution
             </label>
           </div>

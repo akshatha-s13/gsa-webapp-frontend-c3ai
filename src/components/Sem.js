@@ -108,6 +108,11 @@ const TiffToPng = ({ tiffUrl }) => {
     //     <Image image={image} />
     //   </Layer>
     // </Stage>
+    // <Stage width={width} height={height}>
+    //   <Layer>
+    //     <Image image={image} width={width} height={height} />
+    //   </Layer>
+    // </Stage>
     <Stage width={800} height={600}>
       <Layer>
         <Image image={image} width={800} height={600} />

@@ -101,6 +101,7 @@ const ExperimentView = () => {
           <h2 className='text-center text-4xl font-bold mb-4'>SEM</h2>
           <hr/>
           <Sem/>
+          {/* <div style={{ width: '80%', height: '80%' }}><Sem/></div> */}
         </div>
         </div>
     </ExperimentContext.Provider>

@@ -50,7 +50,7 @@ const SearchByFurnace = () => {
       </div>
       <div className='flex flex-row md:w-2/3 justify-center my-2'>
         <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-          <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="env-con-min">
+          <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="furnace-min">
             min
           </label>
           <input
@@ -60,7 +60,7 @@ const SearchByFurnace = () => {
           />
         </div>
         <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-          <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="env-con-max">
+          <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="furnace-max">
             max
           </label>
           <input
