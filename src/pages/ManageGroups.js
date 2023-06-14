@@ -109,7 +109,10 @@ const ManageGroups = () => {
       if(response.status===200)
       {
        showAlert("New group created")  // change 
-        setFlag((prevdata)=>prevdata+1);
+        //setFlag((prevdata)=>prevdata+1);
+        setTimeout(() => {
+          setFlag(prevData => prevData + 1);
+        }, 500);  
         setGroupId('');
         setGroupName('');
         setGroupDescription('');
@@ -152,8 +155,11 @@ const ManageGroups = () => {
         );
         if (response.status === 200) {
           //setData((prevData) => prevData.filter((group) => group.id !== groupId));
-          setFlag((prevdata)=>prevdata+1);
+          //setFlag((prevdata)=>prevdata+1);
          showAlert("Group deleted successfully.");
+         setTimeout(() => {
+          setFlag(prevData => prevData + 1);
+        }, 500);  
         } else {
          showAlert("Deleting group failed. Try again.");
         }

@@ -150,7 +150,6 @@ const Signup = () => {
                 'email': email,
                 'firstname': firstname,
                 'lastname': lastname,
-                'username': email,
                 'institution': inst 
             },
             headers: {
