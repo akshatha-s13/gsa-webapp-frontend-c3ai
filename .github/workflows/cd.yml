@@ -137,8 +137,13 @@ jobs:
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
           if [ "${{ github.event.inputs.environment }}" == "prod" ]; then
             echo "${{ secrets.APP_PROD_ENV }}" > .env
-          else
+          elif [ "${{ github.event.inputs.environment }}" == "dev" ]; then
             echo "${{ secrets.APP_DEV_ENV }}" > .env
+          elif [ "${{ github.event.inputs.environment }}" == "qa" ]; then
+            echo "${{ secrets.APP_QA_ENV }}" > .env
+          else
+            echo "No or invalid environment specified"
+            exit 1
           fi
         else
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
