@@ -29,6 +29,7 @@ env:
   TF_VERSION: '~> 1.4.0'
   TG_VERSION: 'latest'
   NODE_VERSION: '16.x'
+  TF_LIVE_VERSION: 'v1.1.1'
 
 jobs:
   terraform:
@@ -49,7 +50,7 @@ jobs:
         repository: 'nanoMFG/gsaweb-terraform-live'
         path: './gsaweb-terraform-live'
         token: ${{ secrets.TERRAFORM_LIVE_TOKEN }}
-        ref: 'v1.1.0'
+        ref: ${{ env.TF_LIVE_VERSION }}
       
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
