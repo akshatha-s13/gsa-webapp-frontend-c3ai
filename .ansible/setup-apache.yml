@@ -1,6 +1,5 @@
----
 - name: Setup Apache Server
-  hosts: all
+  hosts: "env_{{apache_environment}}"
   become: yes
   vars:
     aws_profile: default
