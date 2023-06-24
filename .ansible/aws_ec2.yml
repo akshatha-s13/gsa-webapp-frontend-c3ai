@@ -3,6 +3,8 @@ regions:
   - us-east-2
 filters:
   instance-state-name: running
+  tag:Name: "{{ lookup('env', 'KEYED_GROUP_PREFIX') }}*"
+
 hostnames:
   - instance-id
 keyed_groups:
