@@ -137,10 +137,13 @@ jobs:
       run: |
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
           if [ "${{ github.event.inputs.environment }}" == "prod" ]; then
+            echo "Setting env for prod"
             echo "${{ secrets.APP_PROD_ENV }}" > .env
           elif [ "${{ github.event.inputs.environment }}" == "dev" ]; then
+            echo "Setting env for dev"
             echo "${{ secrets.APP_DEV_ENV }}" > .env
           elif [ "${{ github.event.inputs.environment }}" == "qa" ]; then
+            echo "Setting env for qa"
             echo "${{ secrets.APP_QA_ENV }}" > .env
           else
             echo "No or invalid environment specified"
