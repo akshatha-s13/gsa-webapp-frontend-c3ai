@@ -4,9 +4,8 @@ regions:
 filters:
   instance-state-name: running
   tag:Name: "{{ lookup('env', 'KEYED_GROUP_PREFIX') }}*"
-
 hostnames:
   - instance-id
 keyed_groups:
   - key: tags['Name']
-    prefix: "{{ lookup('env', 'KEYED_GROUP_PREFIX') }}"
+    prefix: ""
