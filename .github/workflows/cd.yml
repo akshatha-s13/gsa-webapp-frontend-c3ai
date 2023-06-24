@@ -73,7 +73,7 @@ jobs:
           terragrunt run-all apply --terragrunt-non-interactive
           cd ansible_ssm && bucket_name=$(terragrunt output -raw ansible_bucket_name) && cd ..
           echo "bucket_name=$bucket_name" >> $GITHUB_OUTPUT
-          cd instance && instance_name=$(terragrunt output -raw ansible_bucket_name) && cd ..
+          cd instance && instance_name=$(terragrunt output -raw instance_name) && cd ..
           echo "instance_name=$instance_name" >> $GITHUB_OUTPUT
           echo "app_prefix=gsaweb_${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
           echo "env=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
@@ -92,7 +92,7 @@ jobs:
           terragrunt run-all apply --terragrunt-non-interactive
           cd ansible_ssm && bucket_name=$(terragrunt output -raw ansible_bucket_name) && cd ..
           echo "bucket_name=$bucket_name" >> $GITHUB_OUTPUT
-          cd instance && instance_name=$(terragrunt output -raw ansible_bucket_name) && cd ..
+          cd instance && instance_name=$(terragrunt output -raw instance_name) && cd ..
           echo "instance_name=$instance_name" >> $GITHUB_OUTPUT
         fi
 
