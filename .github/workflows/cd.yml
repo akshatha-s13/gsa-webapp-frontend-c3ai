@@ -73,6 +73,8 @@ jobs:
           terragrunt run-all apply --terragrunt-non-interactive
           cd ansible_ssm && bucket_name=$(terragrunt output -raw ansible_bucket_name) && cd ..
           echo "bucket_name=$bucket_name" >> $GITHUB_OUTPUT
+          cd instance && instance_name=$(terragrunt output -raw ansible_bucket_name) && cd ..
+          echo "instance_name=$instance_name" >> $GITHUB_OUTPUT
           echo "app_prefix=gsaweb_${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
           echo "env=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
         else 
@@ -90,6 +92,8 @@ jobs:
           terragrunt run-all apply --terragrunt-non-interactive
           cd ansible_ssm && bucket_name=$(terragrunt output -raw ansible_bucket_name) && cd ..
           echo "bucket_name=$bucket_name" >> $GITHUB_OUTPUT
+          cd instance && instance_name=$(terragrunt output -raw ansible_bucket_name) && cd ..
+          echo "instance_name=$instance_name" >> $GITHUB_OUTPUT
         fi
 
   build:
@@ -124,6 +128,7 @@ jobs:
         MYPASS: ${{ secrets.DEV_MYPASS }}
         BUCKET_NAME: ${{ needs.terraform.outputs.bucket_name }}
         KEYED_GROUP_PREFIX: ${{ needs.terraform.outputs.app_prefix }}
+        INSTANCE_NAME: ${{ needs.terraform.outputs.instance_name }}
         APACHE_ENV: ${{ needs.terraform.outputs.env }}
       run: |
         cd .ansible
@@ -164,6 +169,7 @@ jobs:
       env:
         BUCKET_NAME: ${{ needs.terraform.outputs.bucket_name }}
         KEYED_GROUP_PREFIX: ${{ needs.terraform.outputs.app_prefix }}
+        INSTANCE_NAME: ${{ needs.terraform.outputs.instance_name }}
       run: |
         cd .ansible
         ansible-playbook deploy-app.yml -e "ansible_aws_ssm_bucket_name=$BUCKET_NAME"
