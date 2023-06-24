@@ -39,6 +39,7 @@ jobs:
       bucket_name: ${{steps.apply.outputs.bucket_name}}
       app_prefix: ${{steps.apply.outputs.app_prefix}}
       env: ${{steps.apply.outputs.env}}
+      instance_name: ${{steps.apply.outputs.instance_name}}
 
     steps:
     - name: Checkout
