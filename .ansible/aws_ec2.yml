@@ -6,5 +6,5 @@ filters:
 hostnames:
   - instance-id
 keyed_groups:
-  - prefix: "{{ lookup('env', 'KEYED_GROUP_PREFIX') }}"
-    key: tags.Name
+  - key: tags['Name']
+    prefix: "{{ lookup('env', 'KEYED_GROUP_PREFIX') }}"
