@@ -8,4 +8,4 @@ hostnames:
   - instance-id
 keyed_groups:
   - key: tags['Name']
-    prefix: ""
+    prefix: "{{ lookup('env', 'KEYED_GROUP_PREFIX') }}"
