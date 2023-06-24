@@ -29,7 +29,7 @@ env:
   TF_VERSION: '~> 1.4.0'
   TG_VERSION: 'latest'
   NODE_VERSION: '16.x'
-  TF_LIVE_VERSION: 'v1.1.1'
+  TF_LIVE_VERSION: 'v1.1.2'
 
 jobs:
   terraform:
