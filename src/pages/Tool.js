@@ -101,7 +101,7 @@ const Tool = () => {
               },
               headers: {
                   'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
-                  'accept': 'application/json', //xml
+                  'accept': 'application/json', 
                   'content-type': 'application/json'
               }
           }
@@ -126,7 +126,7 @@ const Tool = () => {
               },
               headers: {
                   'authorization':  'Bearer '+  window.localStorage.getItem('adminToken'),
-                  'accept': 'application/json', //xml
+                  'accept': 'application/json', 
                   'content-type': 'application/json'
               }
           }
@@ -150,8 +150,8 @@ const Tool = () => {
                   'action': 'evaluate'
               },
               headers: {
-                  'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
-                  'accept': 'application/json', //xml
+                  'authorization': 'Bearer '+  window.localStorage.getItem('token'),
+                  'accept': 'application/json', 
                   'content-type': 'application/json'
               }
           }
@@ -166,42 +166,42 @@ const Tool = () => {
           });
         }
 
-        // preparation step
-        const response4 = await axios.post(
-          process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/Experiment', 
-          {spec: {projection: 'unique(recipe.preparationSteps.id)'}},
-          {
-              params: {
-                  'action': 'evaluate'
-              },
-              headers: {
-                  'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
-                  'accept': 'application/json', //xml
-                  'content-type': 'application/json'
-              }
-          }
-        );  
-        if(response4.data.count>0)
-        {
-          response4.data.tuples.forEach(obj => {
-            const cell = obj.cells[0];
-            if (cell && cell.str) {
-              data.preparationSteps.push(cell.str);
-            }
-          });
-        }
+        // preparation step - not needed
+        // const response4 = await axios.post(
+        //   process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/Experiment', 
+        //   {spec: {projection: 'unique(recipe.preparationSteps.id)'}},
+        //   {
+        //       params: {
+        //           'action': 'evaluate'
+        //       },
+        //       headers: {
+        //           'authorization': 'Bearer '+  window.localStorage.getItem('token'),
+        //           'accept': 'application/json', //xml
+        //           'content-type': 'application/json'
+        //       }
+        //   }
+        // );  
+        // if(response4.data.count>0)
+        // {
+        //   response4.data.tuples.forEach(obj => {
+        //     const cell = obj.cells[0];
+        //     if (cell && cell.str) {
+        //       data.preparationSteps.push(cell.str);
+        //     }
+        //   });
+        // }
         
         // properties
         const response5 = await axios.post(
           process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/Experiment', 
-          {spec: {projection: 'unique(properties.id, properties.name)'}}, //name
+          {spec: {projection: 'unique(properties.id)'}}, 
           {
               params: {
                   'action': 'evaluate'
               },
               headers: {
-                  'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
-                  'accept': 'application/json', //xml
+                  'authorization': 'Bearer '+  window.localStorage.getItem('token'),
+                  'accept': 'application/json', 
                   'content-type': 'application/json'
               }
           }
@@ -210,9 +210,8 @@ const Tool = () => {
         {
           response5.data.tuples.forEach(obj => {
             const cell = obj.cells[0];
-            const cell1 = obj.cells[1];
-            if (cell && cell.str && cell1 && cell1.str) {
-              data.properties.push({'id':cell.str,'name':cell1.str});
+            if (cell && cell.str) {
+              data.properties.push(cell.str);
             }
           });
         }
@@ -220,14 +219,14 @@ const Tool = () => {
         // recipes
         const response6 = await axios.post(
           process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/Experiment', 
-          {spec: {projection: 'unique(recipe.id,recipe.name)'}}, //name
+          {spec: {projection: 'unique(recipe.id)'}}, 
           {
               params: {
                   'action': 'evaluate'
               },
               headers: {
-                  'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
-                  'accept': 'application/json', //xml
+                  'authorization': 'Bearer '+  window.localStorage.getItem('token'),
+                  'accept': 'application/json', 
                   'content-type': 'application/json'
               }
           }
@@ -236,9 +235,8 @@ const Tool = () => {
         {
           response6.data.tuples.forEach(obj => {
             const cell = obj.cells[0];
-            const cell1 = obj.cells[1];
-            if (cell && cell.str && cell1 && cell1.str) {
-              data.recipes.push({'id':cell.str,'name':cell1.str});
+            if (cell && cell.str) {
+              data.recipes.push(cell.str);
             }
           });
         }
@@ -246,14 +244,14 @@ const Tool = () => {
         // substrates
         const response7 = await axios.post(
           process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/Experiment', 
-          {spec: {projection: 'unique(substrate.id,substrate.name)'}}, //name
+          {spec: {projection: 'unique(substrate.id)'}}, 
           {
               params: {
                   'action': 'evaluate'
               },
               headers: {
-                  'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
-                  'accept': 'application/json', //xml
+                  'authorization': 'Bearer '+  window.localStorage.getItem('token'),
+                  'accept': 'application/json', 
                   'content-type': 'application/json'
               }
           }
@@ -262,9 +260,8 @@ const Tool = () => {
         {
           response7.data.tuples.forEach(obj => {
             const cell = obj.cells[0];
-            const cell1 = obj.cells[1];
-            if (cell && cell.str && cell1 && cell1.str ) {
-              data.substrates.push({'id':cell.str,'name':cell1.str});
+            if (cell && cell.str) {
+              data.substrates.push(cell.str);
             }
           });
         }
@@ -279,7 +276,7 @@ const Tool = () => {
                   'action': 'evaluate'
               },
               headers: {
-                  'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
+                  'authorization': 'Bearer '+  window.localStorage.getItem('token'),
                   'accept': 'application/json', //xml
                   'content-type': 'application/json'
               }
@@ -304,7 +301,7 @@ const Tool = () => {
                   'action': 'fetch'
               },
               headers: {
-                  'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
+                  'authorization': 'Bearer '+  window.localStorage.getItem('token'),
                   'accept': 'application/json', //xml
                   'content-type': 'application/json'
               }

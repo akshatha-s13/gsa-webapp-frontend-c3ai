@@ -19,7 +19,7 @@ const ToolSubmit = () => {
     const init = async () => {
       const response = await axios.post(
       process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/Author', 
-      {spec: {include: 'grdbGroups',filter:"id=='"+userState.authorId+"'"}}, 
+      {spec: {include: 'grdbGroups',filter:"user=='"+userState.userId+"'"}}, 
       {
           params: {
               'action': 'fetch'
@@ -41,11 +41,11 @@ const ToolSubmit = () => {
           submissionDispatch({
             type: 'INIT_SUBMISSION_DEFAULT',
             payload: {
-              environmentConditionsNumber: toolState.environmentConditions[0],
-              furnaceNumber: toolState.furnaces[0],
-              recipeNumber: toolState.recipes[0].id,
-              propertiesNumber: toolState.properties[0].id,
-              substrateNumber: toolState.substrates[0].id,
+              environmentConditionsNumber: "",
+              furnaceNumber: "",
+              recipeNumber: "",
+              propertiesNumber: "",
+              substrateNumber: "",
               ownerNumber: "",
               catalyst: toolState.catalysts[0],
               carbonSource: toolState.carbonSource[0]
@@ -64,22 +64,22 @@ const ToolSubmit = () => {
   init()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  useEffect(()=>{
-    submissionDispatch({
-      type: 'INIT_SUBMISSION_DEFAULT',
-      payload: {
-        environmentConditionsNumber: toolState.environmentConditions[0],
-        furnaceNumber: toolState.furnaces[0],
-        recipeNumber: toolState.recipes[0].id,
-        propertiesNumber: toolState.properties[0].id,
-        substrateNumber: toolState.substrates[0].id,
-        ownerNumber: ownerGroups[0],
-        catalyst: toolState.catalysts[0],
-        carbonSource: toolState.carbonSource[0]
-      }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[ownerGroups])
+  // useEffect(()=>{
+  //   submissionDispatch({
+  //     type: 'INIT_SUBMISSION_DEFAULT',
+  //     payload: {
+  //       environmentConditionsNumber: toolState.environmentConditions[0],
+  //       furnaceNumber: toolState.furnaces[0],
+  //       recipeNumber: toolState.recipes[0].id,
+  //       propertiesNumber: toolState.properties[0].id,
+  //       substrateNumber: toolState.substrates[0].id,
+  //       ownerNumber: ownerGroups[0],
+  //       catalyst: toolState.catalysts[0],
+  //       carbonSource: toolState.carbonSource[0]
+  //     }
+  //   });
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // },[ownerGroups])
 
   const addAuthor = () => {
     for (const author of submissionState.authors) {
@@ -101,6 +101,17 @@ const ToolSubmit = () => {
     if (!userState.signedIn) {
      showAlert("Please log in before making a new submission.")
       return
+    }
+
+    if(submissionState.ownerNumber==="")
+    {
+      showAlert("Please select owner.")
+      return 
+    }
+    if(submissionState.visibility==="")
+    {
+      showAlert("Please select visibility.")
+      return 
     }
 
     let formData = new FormData()
@@ -213,6 +224,26 @@ const ToolSubmit = () => {
     }
     console.log(db)
     try{
+    // adding owner,visibility,(todo - submitted by) for custom Substrate (EnvironmentConditions,Properties - todo)
+    if(data.useCustomSubstrate){
+      const response0 = await axios.post(
+        process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/Substrate', 
+        {this:{id:db.substrate.id,owner:db.owner,visibility:db.visibility}},
+        {
+            params: {
+              'action':'merge'
+            },
+            headers: {
+                'authorization': 'Bearer '+window.localStorage.getItem('token'),
+                'accept': 'application/json',
+                'content-type': 'application/json'
+            }
+        }
+      );
+      if(response0.status!==200){
+        console.log("Error saving custom substrate")
+      }
+    }
     const response = await axios.post(
       process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/Experiment', 
       {'this':db},
@@ -436,7 +467,8 @@ const ToolSubmit = () => {
             tubeDiameter: tubeDiameter,
             crossSectionalArea: crossSectionalArea,
             tubeLength: tubeLength,
-            lengthOfHeatedRegion: lengthOfHeatedRegion
+            lengthOfHeatedRegion: lengthOfHeatedRegion,
+            submittedBy: {id:userState.authorId}
           }
         },
         {
@@ -459,18 +491,18 @@ const ToolSubmit = () => {
   };
   
   const saveSubstrate = async () => {
-    const { substrateNumber, catalyst, thickness, diameter, length, surfaceArea } = submissionState;
+    const { catalyst, thickness, diameter, length, surfaceArea } = submissionState;
     try {
       const response = await axios.post(
         process.env.REACT_APP_C3_URL + '/api/1/' + process.env.REACT_APP_C3_TENANT + '/' + process.env.REACT_APP_C3_TAG + '/Substrate',
         {
           this: {
-            name: substrateNumber,
             catalyst: catalyst,
             thickness: thickness,
             diameter: diameter,
             length: length,
-            surfaceArea: surfaceArea
+            surfaceArea: surfaceArea,
+            submittedBy: {id:userState.authorId}
           }
         },
         {
@@ -485,7 +517,7 @@ const ToolSubmit = () => {
         }
       );
       submissionDispatch({ type: 'SUBSTRATE_NUMBER_CHANGE', payload: response.data.id });
-      showAlert('Substrate Saved');// with ID ' + response.data.id);
+      showAlert('Substrate Saved with ID ' + response.data.id);
     } catch (error) {
       console.log(error);
       showAlert('Error saving Substrate');
@@ -498,8 +530,7 @@ const ToolSubmit = () => {
       stdDevOfGrowth,
       numberOfLayers,
       growthCoverage,
-      domainSize,
-      propertiesNumber
+      domainSize
     } = submissionState;
   
     try {
@@ -511,8 +542,7 @@ const ToolSubmit = () => {
             standardDeviationOfGrowth: stdDevOfGrowth,
             numberOfLayers: numberOfLayers,
             growthCoverage: growthCoverage,
-            domainSize: domainSize,
-            name: propertiesNumber
+            domainSize: domainSize
           }
         },
         {
@@ -528,7 +558,7 @@ const ToolSubmit = () => {
       );
   
       submissionDispatch({ type: 'PROPERTIES_NUMBER_CHANGE', payload: response.data.id });
-      showAlert('Properties Saved'); //with ID ' + response.data.id);
+      showAlert('Properties Saved with ID ' + response.data.id);
     } catch (error) {
       console.log(error);
       showAlert('Error saving Properties');
@@ -536,16 +566,16 @@ const ToolSubmit = () => {
   };
 
   const saveRecipe = async () => {
-    const { recipeNumber, carbonSource, basePressure, preparationSteps } = submissionState;
+    const { carbonSource, basePressure, preparationSteps } = submissionState;
 
     try {
       const response = await axios.post(
         process.env.REACT_APP_C3_URL + '/api/1/' + process.env.REACT_APP_C3_TENANT + '/' + process.env.REACT_APP_C3_TAG + '/Recipe',
         {
           this: {
-            name: recipeNumber,
             carbonSource: carbonSource,
-            basePressure: basePressure
+            basePressure: basePressure,
+            submittedBy: {id:userState.authorId}
           }
         },
         {
@@ -560,7 +590,7 @@ const ToolSubmit = () => {
         }
       );
       submissionDispatch({ type: 'RECIPE_NUMBER_CHANGE', payload: response.data.id });
-      showAlert('Recipe Saved');// with ID ' + response.data.id);
+      showAlert('Recipe Saved with ID ' + response.data.id);
 
       for (let i = 0; i < preparationSteps.length; i++) {
         const prep_step = preparationSteps[i];
@@ -677,7 +707,9 @@ const ToolSubmit = () => {
               type: 'ENVIRONMENT_CONDITIONS_NUMBER_CHANGE', payload: e.target.value
             })}
             value={submissionState.environmentConditionsNumber}
+            required
           >
+            <option disabled value="">    Select    </option>
             {toolState.environmentConditions.map((envCon) => {
               return <option key={envCon}>{envCon}</option>
             })}
@@ -801,7 +833,9 @@ const ToolSubmit = () => {
               payload: e.target.value
             })}
             value={submissionState.furnaceNumber}
+            required
           >
+            <option disabled value="">    Select    </option>
             {toolState.furnaces.map((furnace) => {
               return <option key={furnace}>{furnace}</option>
             })}
@@ -933,7 +967,8 @@ const ToolSubmit = () => {
           </div>
           <span className='md:w-1/6 block text-gray-500 font-bold md:text-left mb-1 md:mb-0 pl-2'>mm&sup2;</span>
         </div>
-
+        
+        {/* (Custom Name for substrate) 
         <div className="md:w-3/4 md:flex md:items-center mb-6">
           <div className="md:w-1/2">
             <label className="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4" htmlFor="form-substrate-id">
@@ -955,7 +990,7 @@ const ToolSubmit = () => {
               }
             />
           </div>
-        </div>
+        </div> */}
 
         <button
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2"
@@ -981,9 +1016,11 @@ const ToolSubmit = () => {
               payload: e.target.value
             })}
             value={submissionState.substrateNumber}
+            required
           >
+            <option disabled value="">    Select    </option>
             {toolState.substrates.map((substrate) => {
-              return <option key={substrate.id} value={substrate.id}>{substrate.name}</option>
+              return <option key={substrate} >{substrate}</option>
             })}
           </select>
           <div
@@ -1383,7 +1420,8 @@ const ToolSubmit = () => {
         </div>
         <hr className='mb-2'/>
         {prepStepForm}
-
+        
+        {/* (Custom Recipe Name)
         <div className="md:w-3/4 md:flex md:items-center mb-6">
           <div className="md:w-1/2">
             <label className="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4" htmlFor="form-recipe-id">
@@ -1405,7 +1443,7 @@ const ToolSubmit = () => {
               }
             />
           </div>
-        </div>
+        </div> */}
 
         <button
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2"
@@ -1432,9 +1470,11 @@ const ToolSubmit = () => {
               payload: e.target.value
             })}
             value={submissionState.recipeNumber}
+            required
           >
+            <option disabled value="">    Select    </option>
             {toolState.recipes.map((recipe) => {
-              return <option key={recipe.id} value={recipe.id}>{recipe.name}</option>
+              return <option key={recipe} >{recipe}</option>
             })}
           </select>
           <div
@@ -1567,6 +1607,8 @@ const ToolSubmit = () => {
             </select>
           </div>
         </div> */}
+
+        {/* (Custom Properties Name)
         <div className="md:w-3/4 md:flex md:items-center mb-6">
           <div className="md:w-1/2">
             <label className="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4" htmlFor="form-properties-id">
@@ -1588,7 +1630,7 @@ const ToolSubmit = () => {
               }
             />
           </div>
-        </div>
+        </div> */}
 
         <button
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2"
@@ -1614,9 +1656,11 @@ const ToolSubmit = () => {
               payload: e.target.value
             })}
             value={submissionState.propertiesNumber}
+            required
           >
+            <option disabled value="">    Select    </option>
             {toolState.properties.map((property) => {
-              return <option key={property.id} value={property.id}>{property.name}</option>
+              return <option key={property}>{property}</option>
             })}
           </select>
           <div
@@ -1670,6 +1714,7 @@ const ToolSubmit = () => {
             value={authorIdToAdd}
             onChange={e => setAuthorIdToAdd(e.target.value)}
           >
+            <option disabled value="">    Select    </option>
             {toolState.authors.map((author) => {
               return <option key={author.id}>{author.id}</option>
             })}
@@ -1879,7 +1924,9 @@ const ToolSubmit = () => {
               type: 'OWNER_CHANGE', payload: e.target.value
             })}
             value={submissionState.ownerNumber}
+            required
           >
+            <option value="" disabled>    Select    </option>
             {ownerGroups.map((owner) => {
               return <option key={owner}>{owner}</option>
             })}
@@ -1909,7 +1956,9 @@ const ToolSubmit = () => {
               type: 'VISIBILITY_CHANGE', payload: e.target.value
             })}
             value={submissionState.visibility}
+            required
           >  
+          <option value="" disabled>    Select    </option>
           {ownerGroups.length > 0  && (<option key="GROUP">GROUP</option>)}
           <option key="PRIVATE">PRIVATE</option>
           <option key="PUBLIC">PUBLIC</option>  
