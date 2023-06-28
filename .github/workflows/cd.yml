@@ -2,7 +2,7 @@ name: CD Workflow
 on:
   push:
     branches:
-#       - main
+      - main
       - develop
     paths:
       - '**.js'
@@ -29,6 +29,7 @@ env:
   TF_VERSION: '~> 1.4.0'
   TG_VERSION: 'latest'
   NODE_VERSION: '16.x'
+  TF_LIVE_VERSION: 'v1.1.2'
 
 jobs:
   terraform:
@@ -38,6 +39,7 @@ jobs:
       bucket_name: ${{steps.apply.outputs.bucket_name}}
       app_prefix: ${{steps.apply.outputs.app_prefix}}
       env: ${{steps.apply.outputs.env}}
+      instance_name: ${{steps.apply.outputs.instance_name}}
 
     steps:
     - name: Checkout
@@ -49,7 +51,7 @@ jobs:
         repository: 'nanoMFG/gsaweb-terraform-live'
         path: './gsaweb-terraform-live'
         token: ${{ secrets.TERRAFORM_LIVE_TOKEN }}
-        ref: 'v1.1.0'
+        ref: ${{ env.TF_LIVE_VERSION }}
       
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
@@ -122,7 +124,6 @@ jobs:
         MYUSER: ${{ secrets.DEV_MYUSER }}
         MYPASS: ${{ secrets.DEV_MYPASS }}
         BUCKET_NAME: ${{ needs.terraform.outputs.bucket_name }}
-        KEYED_GROUP_PREFIX: ${{ needs.terraform.outputs.app_prefix }}
         APACHE_ENV: ${{ needs.terraform.outputs.env }}
       run: |
         cd .ansible
@@ -136,9 +137,17 @@ jobs:
       run: |
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
           if [ "${{ github.event.inputs.environment }}" == "prod" ]; then
+            echo "Setting env for prod"
             echo "${{ secrets.APP_PROD_ENV }}" > .env
-          else
+          elif [ "${{ github.event.inputs.environment }}" == "dev" ]; then
+            echo "Setting env for dev"
             echo "${{ secrets.APP_DEV_ENV }}" > .env
+          elif [ "${{ github.event.inputs.environment }}" == "qa" ]; then
+            echo "Setting env for qa"
+            echo "${{ secrets.APP_QA_ENV }}" > .env
+          else
+            echo "No or invalid environment specified"
+            exit 1
           fi
         else
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
@@ -154,8 +163,9 @@ jobs:
     - name: Run Ansible Playbook to Deploy App
       env:
         BUCKET_NAME: ${{ needs.terraform.outputs.bucket_name }}
-        KEYED_GROUP_PREFIX: ${{ needs.terraform.outputs.app_prefix }}
+        APACHE_ENV: ${{ needs.terraform.outputs.env }}
+
       run: |
         cd .ansible
-        ansible-playbook deploy-app.yml -e "ansible_aws_ssm_bucket_name=$BUCKET_NAME"
+        ansible-playbook deploy-app.yml -e "apache_environment=$APACHE_ENV ansible_aws_ssm_bucket_name=$BUCKET_NAME"
         cd ..
