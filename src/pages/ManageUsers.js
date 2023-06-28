@@ -10,7 +10,7 @@ const ManageUsers = () => {
   const [flag, setFlag] = useState(1);
   const [groups, setGroups] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [userId, setUserId] = useState(null);
+  const [authorId, setAuthorId] = useState(null);
   const [groupId, setGroupId] = useState(null);
   const [role,setRole] = useState('member');
   const [removeGroupId, setRemoveGroupId] = useState(null);
@@ -22,7 +22,7 @@ const ManageUsers = () => {
       try {
         const response = await axios.post(
           process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/Author', 
-          {spec: {include: 'this,id,firstName,lastName,institution,grdbGroups,grdbModeratorGroups',filter:"isUser==true"}}, //"intersects(groups,['Grdb.Group.Basic'])"
+          {spec: {include: 'this,id,firstName,lastName,institution,grdbGroups,grdbModeratorGroups,user',filter:"isUser==true"}}, //"intersects(groups,['Grdb.Group.Basic'])"
           {
               params: {
                   'action': 'fetch'
@@ -74,25 +74,25 @@ const ManageUsers = () => {
 
 
   const handleSave = async () => {
-    if(userId==null || groupId==null)
+    if(authorId==null || groupId==null)
     {
       showAlert("User or group data is null")
       return;
     }
-    const confirmed = await showConfirm("Are you sure you want to add user "+userId+" to group "+groupId+" as "+role+"?");
+    const confirmed = await showConfirm("Are you sure you want to add "+authorId+" to group "+groupId+" as "+role+"?");
     if (confirmed){//window.confirm("Are you sure you want to add user "+userId+" to group "+groupId+"?")) {
-      if(role==="member" && data.find(user => user.id === userId)?.grdbGroups?.find(group => group.id === groupId)){
+      if(role==="member" && data.find(author => author.id === authorId)?.grdbGroups?.find(group => group.id === groupId)){
         showAlert("Already a member");
         return;
       }
-      else if(role==="moderator" && data.find(user => user.id === userId)?.grdbModeratorGroups?.find(group => group.id === groupId)){
+      else if(role==="moderator" && data.find(author => author.id === authorId)?.grdbModeratorGroups?.find(group => group.id === groupId)){
         showAlert("Already a moderator");
         return;
       }
       try {
         const response = await axios.post(
           process.env.REACT_APP_C3_URL + "/api/1/" + process.env.REACT_APP_C3_TENANT + "/" + process.env.REACT_APP_C3_TAG + "/GrdbIdentityManager",
-          {"groupId":groupId,"authorId":userId,"roleId":role},
+          {"groupId":groupId,"authorId":authorId,"roleId":role},
           {
             params: {
               'action': "addAuthorToGroup"
@@ -106,7 +106,7 @@ const ManageUsers = () => {
         );
         if (response.status === 200) {
           showAlert("User membership modified successfully.");  
-          setUserId(null);
+          setAuthorId(null);
           setGroupId(null);
           setShowModal(false);        
           //setFlag((prevdata)=>prevdata+1);
@@ -124,17 +124,17 @@ const ManageUsers = () => {
   };
 
   const handleRemove = async () => {
-    if(userId==null || removeGroupId==null)
+    if(authorId==null || removeGroupId==null)
     {
       showAlert("User or group data is null")
       return;
     }
-    const confirmed = await showConfirm("Are you sure you want to remove user "+userId+" from group "+groupId+" as "+role+"?");
+    const confirmed = await showConfirm("Are you sure you want to remove "+authorId+" from group "+groupId+" as "+role+"?");
     if (confirmed){//window.confirm("Are you sure you want to add user "+userId+" to group "+groupId+"?")) {
       try {
         const response = await axios.post(
           process.env.REACT_APP_C3_URL + "/api/1/" + process.env.REACT_APP_C3_TENANT + "/" + process.env.REACT_APP_C3_TAG + "/GrdbIdentityManager",
-          {"groupId":removeGroupId,"authorId":userId,"roleId":removeRole},
+          {"groupId":removeGroupId,"authorId":authorId,"roleId":removeRole},
           {
             params: {
               'action': "removeAuthorFromGroup"
@@ -148,7 +148,7 @@ const ManageUsers = () => {
         );
         if (response.status === 200) {
           showAlert("User membership modified successfully.");  
-          setUserId(null);
+          setAuthorId(null);
           setGroupId(null);
           setShowModal(false);   
           setTimeout(() => {
@@ -164,8 +164,8 @@ const ManageUsers = () => {
     }
   };
 
-  const handleDelete = async (userId) => {
-    const confirmed = await showConfirm("Are you sure you want to delete this user "+userId+"?");
+  const handleDelete = async (authorId) => {
+    const confirmed = await showConfirm("Are you sure you want to delete this user "+authorId+"?");
     if (confirmed){
     //if (window.confirm("Are you sure you want to delete this user?")) {
       try {
@@ -175,7 +175,7 @@ const ManageUsers = () => {
           {
             params: {
               'action': "remove",
-               'id': userId,
+               'id': authorId,
             },
             headers: {
               "authorization": "Bearer " + window.localStorage.getItem("token"),
@@ -188,7 +188,7 @@ const ManageUsers = () => {
         // need to update isUser false in author database
         const response1 = await axios.post(
           process.env.REACT_APP_C3_URL + "/api/1/" + process.env.REACT_APP_C3_TENANT + "/" + process.env.REACT_APP_C3_TAG + "/Author",
-          {"this":{"id":userId,"user":{"id":""}}},
+          {"this":{"id":authorId,"user":{"id":""}}},
           {
             params: {
               'action': "merge"
@@ -236,6 +236,10 @@ const ManageUsers = () => {
                 </th>
                 <th scope="col"
                     className="py-3 px-6 text-xs font-medium tracking-wider text-left text-gray-700 uppercase dark:text-gray-400">
+                    Author ID
+                </th>
+                <th scope="col"
+                    className="py-3 px-6 text-xs font-medium tracking-wider text-left text-gray-700 uppercase dark:text-gray-400">
                     First Name
                 </th>
                 <th scope="col"
@@ -273,6 +277,9 @@ const ManageUsers = () => {
                 return (
                 <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                     <td className="py-4 px-6 text-sm text-gray-500 whitespace-nowrap dark:text-gray-400">
+                    {author.user.id}
+                    </td>
+                    <td className="py-4 px-6 text-sm text-gray-500 whitespace-nowrap dark:text-gray-400">
                     {author.id}
                     </td>
                     <td className="py-4 px-6 text-sm text-gray-500 whitespace-nowrap dark:text-gray-400">
@@ -293,7 +300,7 @@ const ManageUsers = () => {
                     <td className="py-4 px-6 text-sm text-gray-500 whitespace-nowrap dark:text-gray-400">
                     <button
                   className='w-9 h-9 self-center text-center bg-gray-400 hover:bg-blue-700 text-white text-3xl font-bold rounded focus:outline-none focus:shadow-outline'
-                  type='button' id='property-btn'  onClick={() => {setShowModal(true);setUserId(author.id);setGroupId(groups[0].value)}}
+                  type='button' id='property-btn'  onClick={() => {setShowModal(true);setAuthorId(author.id);setGroupId(groups[0].value)}}
                     > + </button>
                     </td>
 
@@ -316,7 +323,7 @@ const ManageUsers = () => {
       {showModal &&
       <div className="flex flex-col items-center justify-center w-full px-3 mb-6 md:mb-0">
       <label className="block tracking-wide text-gray-700 text-l font-bold mb-2" htmlFor="add">
-        Add {userId} to Group
+        Add {authorId} to Group
       </label>
       
       <div className="relative w-full max-w-xs">
@@ -372,7 +379,7 @@ const ManageUsers = () => {
         </button>
       </div>
       <label className="block tracking-wide text-gray-700 text-l font-bold mb-2" htmlFor="remove">
-        Remove {userId} from Group
+        Remove {authorId} from Group
       </label>
 
       <div className="relative w-full max-w-xs">
@@ -382,7 +389,7 @@ const ManageUsers = () => {
           onChange={e => setRemoveGroupId(e.target.value)}
         >
           <option value="">Select a group</option>
-          {data.find(user => user.id === userId)?.grdbGroups?.map((group) => (
+          {data.find(user => user.id === authorId)?.grdbGroups?.map((group) => (
             <option key={group.id} value={group.id}>{group.id}</option>
           ))}
         </select>
@@ -394,7 +401,7 @@ const ManageUsers = () => {
       </div>
 
       <div className="flex mt-4">
-        {data.find(user => user.id === userId)?.grdbGroups?.find(group => group.id === removeGroupId) && (
+        {data.find(user => user.id === authorId)?.grdbGroups?.find(group => group.id === removeGroupId) && (
           <div className="mr-4">
             <input
               type="radio"
@@ -408,7 +415,7 @@ const ManageUsers = () => {
           </div>
         )}
         
-        {data.find(user => user.id === userId)?.grdbModeratorGroups?.find(group => group.id === removeGroupId) && (
+        {data.find(user => user.id === authorId)?.grdbModeratorGroups?.find(group => group.id === removeGroupId) && (
           <div>
             <input
               type="radio"
@@ -435,7 +442,7 @@ const ManageUsers = () => {
       <div className="flex mt-4">
         <button
           className="bg-black hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-2"
-          onClick={() => { setShowModal(false); setUserId(null); }}
+          onClick={() => { setShowModal(false); setAuthorId(null); }}
         >
           Cancel
         </button>

@@ -1,6 +1,7 @@
 export const userDefaultState = {
   signedIn: false,
   email: null,
+  userId: null,
   authorId: null,
   isAdmin: false,
   isModerator: false
@@ -13,6 +14,7 @@ const userReducer = (state, action) => {
       return {
         ...state,
         signedIn: true,
+        userId: action.payload.userId,
         authorId: action.payload.authorId,
         isAdmin: action.payload.isAdmin,
         isModerator: action.payload.isModerator
@@ -22,6 +24,7 @@ const userReducer = (state, action) => {
       return {
         ...state,
         signedIn: false,
+        userId: null,
         authorId: null,
         isAdmin: false,
         isModerator: false
