@@ -43,7 +43,7 @@ const Profile = () => {
  
   return (
     <div className='md:w-1/2 flex flex-col md:items-center mx-auto border rounded my-6 py-6'>
-      <h2 className='text-center text-3xl font-bold mb-6'>User Profile</h2>
+      <h2 className='text-center text-3xl font-bold mb-6'>Author Profile</h2>
       <hr className='my-1'/>
       <div className='w-full md:flex md:items-center mb-1'>
         <span className='md:w-1/2 block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4'>Author Id :</span>

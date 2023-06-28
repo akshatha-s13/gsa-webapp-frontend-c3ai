@@ -46,7 +46,7 @@ export const submissionDefaultState = {
   semFiles: [],
   ramanFiles: [],
   ownerNumber:"",
-  visibility:"GROUP"
+  visibility:""
 }
 
 const submissionReducer = (state, action) => {

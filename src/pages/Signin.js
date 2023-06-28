@@ -41,26 +41,49 @@ const Signin = () => {
                 }
             } 
           );
-          //console.log(response1)
-          var isModerator = false;
-          var isAdmin = false;
-          response1.data.objs[0].groups.forEach(group => {
-            if(group.id.includes("Admin"))
-            {
-              isAdmin = true;
+          if(response1.status===200){
+            // to get author id
+            const response2 = await axios.post(
+              process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/Author', 
+              {spec: {filter:"user=='"+email+"'"}}, 
+              {
+                  params: {
+                      'action': 'fetch'
+                  },
+                  headers: {
+                      'authorization': 'Bearer '+  window.localStorage.getItem('token'),
+                      'accept': 'application/json', //xml
+                      'content-type': 'application/json'
+                  }
+              } 
+            );
+            //console.log(response1)
+            var authorId = null;
+            if(response2.data.count>0){
+              authorId = response2.data.objs[0].id;
+              //console.log(authorId)
             }
-            if(group.id.includes("Moderator"))
-            {
-              isModerator = true;
-            }
-          });
+            var isModerator = false;
+            var isAdmin = false;
+            response1.data.objs[0].groups.forEach(group => {
+              if(group.id.includes("Admin"))
+              {
+                isAdmin = true;
+              }
+              if(group.id.includes("Moderator"))
+              {
+                isModerator = true;
+              }
+            });
 
-          const payload = {
-             authorId: response1.data.objs[0].id, //##change response1.data.count>0: response1.data.objs[0].id
-             isAdmin: isAdmin,
-             isModerator: isModerator,
+            const payload = {
+              userId: response1.data.objs[0].id,
+              authorId: authorId, //##change response1.data.count>0: response1.data.objs[0].id
+              isAdmin: isAdmin,
+              isModerator: isModerator,
+            }
+            g.userDispatch({type: 'SIGN_IN', payload})
           }
-          g.userDispatch({type: 'SIGN_IN', payload})
         } catch (err) {
         // add specific error codes
         //console.log(err)
