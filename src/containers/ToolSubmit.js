@@ -13,6 +13,8 @@ const ToolSubmit = () => {
   const {userState, toolState} = useContext(GlobalContext)
   const [submissionState, submissionDispatch] = useReducer(submissionReducer, submissionDefaultState)
   const [authorIdToAdd, setAuthorIdToAdd] = useState("")
+  const [furnaceAuthorIdToAdd, setFurnaceAuthorIdToAdd] = useState("")
+  const [recipeAuthorIdToAdd, setRecipeAuthorIdToAdd] = useState("")
   const [ownerGroups,setOwnerGroups] = useState([]) 
 
   useEffect(() => {
@@ -94,6 +96,32 @@ const ToolSubmit = () => {
       }
     }
   }
+  const addFurnaceAuthor = () => {
+    for (const author of submissionState.furnaceAuthors) {
+      if (author.id === furnaceAuthorIdToAdd) {
+        return
+      }
+    }
+    for (const author of toolState.authors) {
+      if (author.id === furnaceAuthorIdToAdd) {
+        const payload = author
+        submissionDispatch({type: 'ADD_FURNACE_AUTHOR', payload})
+      }
+    }
+  }
+  const addRecipeAuthor = () => {
+    for (const author of submissionState.recipeAuthors) {
+      if (author.id === recipeAuthorIdToAdd) {
+        return
+      }
+    }
+    for (const author of toolState.authors) {
+      if (author.id === recipeAuthorIdToAdd) {
+        const payload = author
+        submissionDispatch({type: 'ADD_RECIPE_AUTHOR', payload})
+      }
+    }
+  }
   const addPrepStep = () => {
     submissionDispatch({type: 'ADD_PREPARATION_STEP'})
   }
@@ -103,7 +131,7 @@ const ToolSubmit = () => {
       return
     }
 
-    if(submissionState.ownerNumber==="")
+    if(ownerGroups.length>0 && submissionState.ownerNumber==="")
     {
       showAlert("Please select owner.")
       return 
@@ -140,6 +168,7 @@ const ToolSubmit = () => {
     // me
     let data = experimentData
     let db = {}
+    let properties = {}
     // if (data.useCustomEnvironmentConditions) {
     //   const ambient_temperature = data.ambientTemperature //? data.ambientTemperature : null;
     //   const dew_point = data.dewPoint //? data.dewPoint : null;
@@ -169,22 +198,23 @@ const ToolSubmit = () => {
       db.substrate = {'id':data.substrateNumber};
     //}
     
-    // if (data.useCustomProperties){
-    //   const average_thickness_of_growth = data.avgThicknessOfGrowth //|| null;
-    //   const standard_deviation_of_growth = data.stdDevOfGrowth //|| null;
-    //   const number_of_layers = data.numberOfLayers //|| null;
-    //   const growth_coverage = data.growthCoverage //|| null;
-    //   const domain_size = data.domainSize //|| null;
-    //   db.properties = [{
-    //     'averageThicknessOfGrowth': average_thickness_of_growth,
-    //     'standardDeviationOfGrowth': standard_deviation_of_growth,
-    //     'numberOfLayers': number_of_layers,
-    //     'growthCoverage': growth_coverage,
-    //     'domainSize': domain_size,
-    //   }] 
-    // } else{
+    if (data.useCustomProperties){
+      db.properties = []
+      const average_thickness_of_growth = data.avgThicknessOfGrowth //|| null;
+      const standard_deviation_of_growth = data.stdDevOfGrowth //|| null;
+      const number_of_layers = data.numberOfLayers //|| null;
+      const growth_coverage = data.growthCoverage //|| null;
+      const domain_size = data.domainSize //|| null;
+      properties = {
+        'averageThicknessOfGrowth': average_thickness_of_growth,
+        'standardDeviationOfGrowth': standard_deviation_of_growth,
+        'numberOfLayers': number_of_layers,
+        'growthCoverage': growth_coverage,
+        'domainSize': domain_size,
+      }
+    } else{
       db.properties = [{'id':data.propertiesNumber}];
-    //}
+    }
            
     // if (data.useCustomRecipe) {
     //   const carbon_source = data.carbonSource //? data.carbonSource : null;
@@ -215,16 +245,22 @@ const ToolSubmit = () => {
     }
 
     // expt date add later
-    db.owner = data.ownerNumber;
+    if(ownerGroups.length>0 && data.ownerNumber!=="")
+    {
+      db.owner = {'type':'GrdbGroup', 'id':data.ownerNumber};
+    }
+    else{
+      db.owner = {'type':'Author', 'id':userState.authorId};
+    }
     db.visibility = data.visibility;
     db.submittedBy = {'id': userState.authorId}
     db.authors = []
     for (const author of data.authors) {
         db.authors.push({'id':author.id})
     }
-    console.log(db)
+    // console.log(db)
     try{
-    // adding owner,visibility,(todo - submitted by) for custom Substrate (EnvironmentConditions,Properties - todo)
+    // adding owner,visibility for custom Substrate 
     if(data.useCustomSubstrate){
       const response0 = await axios.post(
         process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/Substrate', 
@@ -263,6 +299,30 @@ const ToolSubmit = () => {
     {
       const expId = response.data.id;
 
+      // create properties
+      if(data.useCustomProperties){
+        properties['experiment'] = {"id": expId}
+        const response0 = await axios.post(
+          process.env.REACT_APP_C3_URL + '/api/1/' + process.env.REACT_APP_C3_TENANT + '/' + process.env.REACT_APP_C3_TAG + '/Properties',
+          {
+            this: properties
+          },
+          {
+            params: {
+              'action': 'create'
+            },
+            headers: {
+              authorization: 'Bearer ' + window.localStorage.getItem('token'),
+              'accept': 'application/json',
+              'content-type': 'application/json'
+            }
+          }
+        );
+        if(response0.status!==200)
+        {
+          showAlert("Error saving Properties")
+        }
+      }
       // upload raman file
       async function uploadFile(file) {
         const contentType = file.type;
@@ -394,27 +454,29 @@ const ToolSubmit = () => {
       await Promise.all(uploadPromisesSem);
 
       // add relation to authors db.authors
+      let authors = []
       for (const author of data.authors) {
         const authorId = author.id;
-        const response1 = await axios.post(
-          process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/ExperimentAuthor', 
-          {"this":{"id":expId+"_"+authorId,"experiment":{"id":expId},"author":{"id":authorId}}},
-          {
-              params: {
-                'action':'create'
-              },
-              headers: {
-                  'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
-                  'accept': 'application/json',
-                  'content-type': 'application/json'
-              }
-          }
-        );
-        if(response1.status!==200)
-        {
-          showAlert("Error linking author and experiment")
-        }
+        authors.push({"id":expId+"_"+authorId,"experiment":{"id":expId},"author":{"id":authorId}})
       }  
+      const response1 = await axios.post(
+        process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/ExperimentAuthor', 
+        {"objs":authors},
+        {
+            params: {
+              'action':'createBatch'
+            },
+            headers: {
+                'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
+                'accept': 'application/json',
+                'content-type': 'application/json'
+            }
+        }
+      );
+      if(response1.status!==200)
+      {
+        showAlert("Error linking author and experiment")
+      }
     }
     }
     catch(e){
@@ -458,7 +520,22 @@ const ToolSubmit = () => {
   };
 
   const saveFurnace = async () => {
-    const { tubeDiameter, crossSectionalArea, tubeLength, lengthOfHeatedRegion } = submissionState;
+    const { tubeDiameter, crossSectionalArea, tubeLength, lengthOfHeatedRegion, furnaceOwnerNumber, furnaceVisibility, furnaceAuthors } = submissionState;
+    if(ownerGroups.length>0 && furnaceOwnerNumber==="")
+    {
+      showAlert("Please select owner")
+      return
+    }
+    if(furnaceVisibility==="")
+    {
+      showAlert("Please select visibility")
+      return
+    }
+    let owner = {'type':'Author', 'id':userState.authorId};
+    if(ownerGroups.length>0 && furnaceOwnerNumber!=="")
+    {
+      owner = {'type':'GrdbGroup', 'id':furnaceOwnerNumber};
+    }
     try {
       const response = await axios.post(
         process.env.REACT_APP_C3_URL + '/api/1/' + process.env.REACT_APP_C3_TENANT + '/' + process.env.REACT_APP_C3_TAG + '/Furnace',
@@ -468,7 +545,9 @@ const ToolSubmit = () => {
             crossSectionalArea: crossSectionalArea,
             tubeLength: tubeLength,
             lengthOfHeatedRegion: lengthOfHeatedRegion,
-            submittedBy: {id:userState.authorId}
+            submittedBy: {id:userState.authorId},
+            owner: owner,
+            visibility: furnaceVisibility
           }
         },
         {
@@ -484,6 +563,31 @@ const ToolSubmit = () => {
       );
       submissionDispatch({ type: 'FURNACE_NUMBER_CHANGE', payload: response.data.id });
       showAlert('Furnace Saved with ID ' + response.data.id);
+      let furnaceId = response.data.id
+      let authors = []
+      for (const author of furnaceAuthors) {
+        const authorId = author.id;
+        authors.push({"id":furnaceId+"_"+authorId,"furnace":{"id":furnaceId},"author":{"id":authorId}})
+      }  
+      const response1 = await axios.post(
+        process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/FurnaceAuthor', 
+        {"objs":authors},
+        {
+            params: {
+              'action':'createBatch'
+            },
+            headers: {
+                'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
+                'accept': 'application/json',
+                'content-type': 'application/json'
+            }
+        }
+      );
+      if(response1.status!==200)
+      {
+        showAlert("Error linking author and furnace")
+      }
+
     } catch (error) {
       console.log(error);
       showAlert('Error saving Furnace');
@@ -524,49 +628,64 @@ const ToolSubmit = () => {
     }
   };
   
-  const saveProperties = async () => {
-    const {
-      avgThicknessOfGrowth,
-      stdDevOfGrowth,
-      numberOfLayers,
-      growthCoverage,
-      domainSize
-    } = submissionState;
+  // const saveProperties = async () => {
+  //   const {
+  //     avgThicknessOfGrowth,
+  //     stdDevOfGrowth,
+  //     numberOfLayers,
+  //     growthCoverage,
+  //     domainSize
+  //   } = submissionState;
   
-    try {
-      const response = await axios.post(
-        process.env.REACT_APP_C3_URL + '/api/1/' + process.env.REACT_APP_C3_TENANT + '/' + process.env.REACT_APP_C3_TAG + '/Properties',
-        {
-          this: {
-            averageThicknessOfGrowth: avgThicknessOfGrowth,
-            standardDeviationOfGrowth: stdDevOfGrowth,
-            numberOfLayers: numberOfLayers,
-            growthCoverage: growthCoverage,
-            domainSize: domainSize
-          }
-        },
-        {
-          params: {
-            'action': 'create'
-          },
-          headers: {
-            authorization: 'Bearer ' + window.localStorage.getItem('token'),
-            'accept': 'application/json',
-            'content-type': 'application/json'
-          }
-        }
-      );
+  //   try {
+  //     const response = await axios.post(
+  //       process.env.REACT_APP_C3_URL + '/api/1/' + process.env.REACT_APP_C3_TENANT + '/' + process.env.REACT_APP_C3_TAG + '/Properties',
+  //       {
+  //         this: {
+  //           averageThicknessOfGrowth: avgThicknessOfGrowth,
+  //           standardDeviationOfGrowth: stdDevOfGrowth,
+  //           numberOfLayers: numberOfLayers,
+  //           growthCoverage: growthCoverage,
+  //           domainSize: domainSize
+  //         }
+  //       },
+  //       {
+  //         params: {
+  //           'action': 'create'
+  //         },
+  //         headers: {
+  //           authorization: 'Bearer ' + window.localStorage.getItem('token'),
+  //           'accept': 'application/json',
+  //           'content-type': 'application/json'
+  //         }
+  //       }
+  //     );
   
-      submissionDispatch({ type: 'PROPERTIES_NUMBER_CHANGE', payload: response.data.id });
-      showAlert('Properties Saved with ID ' + response.data.id);
-    } catch (error) {
-      console.log(error);
-      showAlert('Error saving Properties');
-    }
-  };
+  //     submissionDispatch({ type: 'PROPERTIES_NUMBER_CHANGE', payload: response.data.id });
+  //     showAlert('Properties Saved with ID ' + response.data.id);
+  //   } catch (error) {
+  //     console.log(error);
+  //     showAlert('Error saving Properties');
+  //   }
+  // };
 
   const saveRecipe = async () => {
-    const { carbonSource, basePressure, preparationSteps } = submissionState;
+    const { carbonSource, basePressure, preparationSteps, recipeOwnerNumber, recipeVisibility, recipeAuthors } = submissionState;
+    let owner = {'type':'Author', 'id':userState.authorId};
+    if(ownerGroups.length>0 && recipeOwnerNumber==="")
+    {
+      showAlert("Please select owner")
+      return
+    }
+    if(recipeVisibility==="")
+    {
+      showAlert("Please select visibility")
+      return
+    }
+    if(ownerGroups.length>0 && recipeOwnerNumber!=="")
+    {
+      owner = {'type':'GrdbGroup', 'id':recipeOwnerNumber};
+    }
 
     try {
       const response = await axios.post(
@@ -575,7 +694,9 @@ const ToolSubmit = () => {
           this: {
             carbonSource: carbonSource,
             basePressure: basePressure,
-            submittedBy: {id:userState.authorId}
+            submittedBy: {id:userState.authorId},
+            owner: owner,
+            visibility: recipeVisibility
           }
         },
         {
@@ -591,7 +712,32 @@ const ToolSubmit = () => {
       );
       submissionDispatch({ type: 'RECIPE_NUMBER_CHANGE', payload: response.data.id });
       showAlert('Recipe Saved with ID ' + response.data.id);
+      let recipeId = response.data.id
+      let authors = []
+      for (const author of recipeAuthors) {
+        const authorId = author.id;
+        authors.push({"id":recipeId+"_"+authorId,"recipe":{"id":recipeId},"author":{"id":authorId}})
+      }  
+      const response1 = await axios.post(
+        process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/RecipeAuthor', 
+        {"objs":authors},
+        {
+            params: {
+              'action':'createBatch'
+            },
+            headers: {
+                'authorization': 'Bearer '+  window.localStorage.getItem('adminToken'),
+                'accept': 'application/json',
+                'content-type': 'application/json'
+            }
+        }
+      );
+      if(response1.status!==200)
+      {
+        showAlert("Error linking author and recipe")
+      }
 
+      let steps = []
       for (let i = 0; i < preparationSteps.length; i++) {
         const prep_step = preparationSteps[i];
         let preparationStep = {
@@ -607,15 +753,39 @@ const ToolSubmit = () => {
         'argonFlowRate' : prep_step.argonFlowRate ,//||null,
         'coolingRate' : prep_step.coolingRate ,//||null,
         }
-        try {
+        steps.push(preparationStep)
+      }
+      try {
+        await axios.post(
+          process.env.REACT_APP_C3_URL + '/api/1/' + process.env.REACT_APP_C3_TENANT + '/' + process.env.REACT_APP_C3_TAG + '/PreparationStep',
+          {
+            "objs": steps
+          },
+          {
+            params: {
+              'action':'createBatch'
+            },
+            headers: {
+              authorization: 'Bearer ' + window.localStorage.getItem('token'),
+              'accept': 'application/json',
+              'content-type': 'application/json'
+            }
+          }
+        );
+        //submissionDispatch({ type: 'RECIPE_NUMBER_CHANGE', payload: response.data.id });
+        //showAlert('Preparation Step Saved');
+      } catch (error) {
+        // check this
+        if (error.response.data.codes.includes("DuplicateIdForCreate")) {
+          // retrying
           await axios.post(
             process.env.REACT_APP_C3_URL + '/api/1/' + process.env.REACT_APP_C3_TENANT + '/' + process.env.REACT_APP_C3_TAG + '/PreparationStep',
             {
-              this: preparationStep
+              "objs": steps
             },
             {
               params: {
-                'action':'create'
+                'action':'createBatch'
               },
               headers: {
                 authorization: 'Bearer ' + window.localStorage.getItem('token'),
@@ -624,11 +794,11 @@ const ToolSubmit = () => {
               }
             }
           );
-          //submissionDispatch({ type: 'RECIPE_NUMBER_CHANGE', payload: response.data.id });
-          //showAlert('Preparation Step Saved');
-        } catch (error) {
-          console.log(error);
-          showAlert('Error saving Preparation Step');
+
+        }
+        else{
+        console.log(error);
+        showAlert('Error saving Preparation Step');
         }
       }
   
@@ -723,6 +893,67 @@ const ToolSubmit = () => {
         </div>
       </>
 
+  const furnaceAuthorsForm =
+  <div className='flex flex-col md:w-full'>
+    {submissionState.furnaceAuthors.map((author, i) => {
+      return (
+        <div key={i} className='md:w-3/4 py-2 px-4 mb-2 border rounded mx-auto'>
+          <div className='flex justify-between'>
+            <h6 className='font-bold ml-3'>Author #{author.id}</h6>
+            <button
+              className='w-9 h-9 text-center bg-red-500 hover:bg-red-700 text-white text-3xl font-bold rounded focus:outline-none focus:shadow-outline'
+              type='button'
+              onClick={() => {
+                submissionDispatch({type: 'DEL_FURNACE_AUTHOR', payload: i})
+              }}
+            >
+              X
+            </button>
+          </div>
+          <hr className='my-1'/>
+          <div className='w-full md:flex md:items-center mb-1'>
+            <span className='md:w-1/2 block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4'>Name :</span>
+            {author.firstName + " " + author.lastName}
+          </div>
+          <div className='w-full md:flex md:items-center mb-1'>
+            <span
+              className='md:w-1/2 block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4'>Institution :</span>
+            {author.institution}
+          </div>
+        </div>
+      )
+    })}
+    <div className='flex items-center justify-center'>
+      <label className="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4"
+            htmlFor="author-submit">
+        Author Number
+      </label>
+      <div className='relative mr-4 w-1/3'>
+        <select
+          className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+          id="author-submit"
+          value={furnaceAuthorIdToAdd}
+          onChange={e => setFurnaceAuthorIdToAdd(e.target.value)}
+        >
+          <option disabled value="">    Select    </option>
+          {toolState.authors.map((author) => {
+            return <option key={author.id}>{author.id}</option>
+          })}
+        </select>
+        <div
+          className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+          <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+          </svg>
+        </div>
+      </div>
+      <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              onClick={addFurnaceAuthor}>
+        Add Furnace Author 
+      </button>
+    </div>
+  </div>
+
   const furnaceForm =
     submissionState.useCustomFurnace
       ?
@@ -806,6 +1037,73 @@ const ToolSubmit = () => {
             />
           </div>
           <span className='block text-gray-500 font-bold md:text-left mb-1 md:mb-0 pl-2'>mm</span>
+        </div>
+      
+      <div className="md:w-3/4 md:flex md:flex-col md:items-center md:justify-center mb-6 mx-auto">
+        {furnaceAuthorsForm}
+      </div>
+      {ownerGroups.length > 0  && (
+      <div className="md:w-3/4 md:flex md:items-center md:justify-center mb-6 mx-auto">
+        <div>
+          <label className="block text-gray-500 font-bold md:text-center mb-1 md:mb-0 pr-4"
+                 htmlFor="owner-submit">
+            Furnace Owner
+          </label>
+        </div>
+        <div className="md:w-1/3 relative">
+          <select
+            className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+            id="owner-submit"
+            onChange={e => submissionDispatch({
+              type: 'FURNACE_OWNER_CHANGE', payload: e.target.value
+            })}
+            value={submissionState.furnaceOwnerNumber}
+            required
+          >
+            <option value="" disabled>    Select    </option>
+            {ownerGroups.map((owner) => {
+              return <option key={owner}>{owner}</option>
+            })}
+          </select>
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+            </svg>
+          </div>
+        </div>
+        </div>
+        )}
+
+        <div className="md:w-3/4 md:flex md:items-center md:justify-center mb-6 mx-auto">
+        <div>
+          <label className="block text-gray-500 font-bold md:text-center mb-1 md:mb-0 pr-4"
+                 htmlFor="visibility-submit">
+            Visibilty
+          </label>
+        </div>
+        <div className="md:w-1/3 relative">
+          <select
+            className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+            id="visibility-submit"
+            onChange={e => submissionDispatch({
+              type: 'FURNACE_VISIBILITY_CHANGE', payload: e.target.value
+            })}
+            value={submissionState.furnaceVisibility}
+            required
+          >  
+          <option value="" disabled>    Select    </option>
+          {ownerGroups.length > 0  && (<option key="GROUP">GROUP</option>)}
+          <option key="PRIVATE">PRIVATE</option>
+          <option key="PUBLIC">PUBLIC</option>  
+          </select>
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+            </svg>
+          </div>
+        </div>
         </div>
 
         <button
@@ -1374,6 +1672,67 @@ const ToolSubmit = () => {
       </div>
     </div>
 
+  const recipeAuthorsForm =
+  <div className='flex flex-col md:w-full'>
+    {submissionState.recipeAuthors.map((author, i) => {
+      return (
+        <div key={i} className='md:w-3/4 py-2 px-4 mb-2 border rounded mx-auto'>
+          <div className='flex justify-between'>
+            <h6 className='font-bold ml-3'>Author #{author.id}</h6>
+            <button
+              className='w-9 h-9 text-center bg-red-500 hover:bg-red-700 text-white text-3xl font-bold rounded focus:outline-none focus:shadow-outline'
+              type='button'
+              onClick={() => {
+                submissionDispatch({type: 'DEL_RECIPE_AUTHOR', payload: i})
+              }}
+            >
+              X
+            </button>
+          </div>
+          <hr className='my-1'/>
+          <div className='w-full md:flex md:items-center mb-1'>
+            <span className='md:w-1/2 block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4'>Name :</span>
+            {author.firstName + " " + author.lastName}
+          </div>
+          <div className='w-full md:flex md:items-center mb-1'>
+            <span
+              className='md:w-1/2 block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4'>Institution :</span>
+            {author.institution}
+          </div>
+        </div>
+      )
+    })}
+    <div className='flex items-center justify-center'>
+      <label className="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4"
+            htmlFor="author-submit">
+        Author Number
+      </label>
+      <div className='relative mr-4 w-1/3'>
+        <select
+          className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+          id="author-submit"
+          value={recipeAuthorIdToAdd}
+          onChange={e => setRecipeAuthorIdToAdd(e.target.value)}
+        >
+          <option disabled value="">    Select    </option>
+          {toolState.authors.map((author) => {
+            return <option key={author.id}>{author.id}</option>
+          })}
+        </select>
+        <div
+          className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+          <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+          </svg>
+        </div>
+      </div>
+      <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              onClick={addRecipeAuthor}>
+        Add Recipe Author 
+      </button>
+    </div>
+  </div>
+
   const recipeForm =
     submissionState.useCustomRecipe
       ?
@@ -1444,6 +1803,73 @@ const ToolSubmit = () => {
             />
           </div>
         </div> */}
+
+      <div className="md:w-3/4 md:flex md:flex-col md:items-center md:justify-center mb-6 mx-auto">
+        {recipeAuthorsForm}
+      </div>
+      {ownerGroups.length > 0  && (
+      <div className="md:w-3/4 md:flex md:items-center md:justify-center mb-6 mx-auto">
+        <div>
+          <label className="block text-gray-500 font-bold md:text-center mb-1 md:mb-0 pr-4"
+                 htmlFor="owner-submit">
+            Recipe Owner
+          </label>
+        </div>
+        <div className="md:w-1/3 relative">
+          <select
+            className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+            id="owner-submit"
+            onChange={e => submissionDispatch({
+              type: 'RECIPE_OWNER_CHANGE', payload: e.target.value
+            })}
+            value={submissionState.recipeOwnerNumber}
+            required
+          >
+            <option value="" disabled>    Select    </option>
+            {ownerGroups.map((owner) => {
+              return <option key={owner}>{owner}</option>
+            })}
+          </select>
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+            </svg>
+          </div>
+        </div>
+        </div>
+        )}
+
+        <div className="md:w-3/4 md:flex md:items-center md:justify-center mb-6 mx-auto">
+        <div>
+          <label className="block text-gray-500 font-bold md:text-center mb-1 md:mb-0 pr-4"
+                 htmlFor="visibility-submit">
+            Visibilty
+          </label>
+        </div>
+        <div className="md:w-1/3 relative">
+          <select
+            className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+            id="visibility-submit"
+            onChange={e => submissionDispatch({
+              type: 'RECIPE_VISIBILITY_CHANGE', payload: e.target.value
+            })}
+            value={submissionState.recipeVisibility}
+            required
+          >  
+          <option value="" disabled>    Select    </option>
+          {ownerGroups.length > 0  && (<option key="GROUP">GROUP</option>)}
+          <option key="PRIVATE">PRIVATE</option>
+          <option key="PUBLIC">PUBLIC</option>  
+          </select>
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+            </svg>
+          </div>
+        </div>
+        </div>
 
         <button
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2"
@@ -1632,12 +2058,12 @@ const ToolSubmit = () => {
           </div>
         </div> */}
 
-        <button
+        {/* <button
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2"
           onClick={saveProperties}
         >
           Save
-        </button>
+        </button> */}
       </div>
       :
       <>
@@ -1733,9 +2159,9 @@ const ToolSubmit = () => {
       </div>
     </div>
 
-
   return (
     <>
+      <div className='w-full md:flex flex-col md:container md:mx-auto mt-10 border rounded p-5'>
       <h2 className='text-center text-4xl font-bold mb-4'>Submit New Experiment Data</h2>
       <hr className='mb-5'/>
       <div className='w-full md:flex flex-row mt-5 '>
@@ -1981,7 +2407,7 @@ const ToolSubmit = () => {
         onClick={onSubmitExperiment}>
         Submit
       </button>
-      
+      </div> 
     </>
   )
 }
