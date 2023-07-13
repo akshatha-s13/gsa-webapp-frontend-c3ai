@@ -164,7 +164,7 @@ const ManageUsers = () => {
     }
   };
 
-  const handleDelete = async (authorId) => {
+  const handleDelete = async (authorId, userId) => {
     const confirmed = await showConfirm("Are you sure you want to delete this user "+authorId+"?");
     if (confirmed){
     //if (window.confirm("Are you sure you want to delete this user?")) {
@@ -175,7 +175,7 @@ const ManageUsers = () => {
           {
             params: {
               'action': "remove",
-               'id': authorId,
+               'id': userId,
             },
             headers: {
               "authorization": "Bearer " + window.localStorage.getItem("token"),
@@ -307,7 +307,7 @@ const ManageUsers = () => {
                     <td className="py-4 px-6 text-sm text-gray-500 whitespace-nowrap dark:text-gray-400">
                     <button
                         className="bg-black hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                        onClick={() => handleDelete(author.id)}
+                        onClick={() => handleDelete(author.id, author.user.id)}
                         >
                         Delete
                       </button>
