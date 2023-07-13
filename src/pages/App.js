@@ -15,6 +15,7 @@ import ExperimentView from "./ExperimentView";
 import toolReducer, {toolDefaultState} from "../reducers/toolReducer";
 import userReducer, {userDefaultState} from "../reducers/userReducer";
 import { showAlert } from '../components/CustomAlert';
+import ToolSubmit from "../containers/ToolSubmit";
 
 export const GlobalContext = React.createContext();
 
@@ -120,6 +121,9 @@ const App = () => {
           </Route>
           <Route path='/profile'>
             {RequireAuth(Profile)}
+          </Route>
+          <Route path='/submit'>
+            {RequireAuth(ToolSubmit)}
           </Route>
           <Route path='/managegroups'>
             {RequireAuth(ManageGroups)}

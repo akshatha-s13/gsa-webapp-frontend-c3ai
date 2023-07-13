@@ -1,14 +1,19 @@
-import React, {useContext} from "react";
+import React, {useContext, useState} from "react";
 import {GlobalContext} from "../../pages/App";
 import {isDefault} from "./utils";
 import {Link} from "react-router-dom";
 
 const QueryResultTableRows = () => {
   const {toolState} = useContext(GlobalContext)
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10; // Number of items to display per page
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = toolState.queryResults.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(toolState.queryResults.length / itemsPerPage);
   return (
     <>
-      {toolState.queryResults.map(experiment => {
+      {currentItems.map(experiment => {
         const furnaceId = experiment.furnace ? experiment.furnace.id : 'N/A'
         const substrateId = experiment.substrate ? experiment.substrate.id : 'N/A'
         const numLayers = experiment.properties ? experiment.properties[0].numberOfLayers : 'N/A'
@@ -114,6 +119,25 @@ const QueryResultTableRows = () => {
           </tr>
         )
       })}
+      {/* Pagination controls */}
+      {totalPages>1 &&
+      <div className="pagination-container">
+        <button
+          className="pagination-button"
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage(currentPage - 1)}
+        >
+          Previous
+        </button>
+        <span className="pagination-info">{currentPage} of {totalPages}</span>
+        <button
+          className="pagination-button"
+          disabled={indexOfLastItem >= toolState.queryResults.length}
+          onClick={() => setCurrentPage(currentPage + 1)}
+        >
+          Next
+        </button>
+      </div>}
     </>
   )
 }

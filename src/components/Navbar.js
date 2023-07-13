@@ -1,7 +1,7 @@
 import React, {useContext} from 'react'
 import {Link} from 'react-router-dom'
 import {GlobalContext} from "../pages/App";
-
+import UserGuide from '../assets/UserGuide.pdf';
 const Navbar = () => {
   const {flashSuccess, userState, userDispatch} = useContext(GlobalContext)
 
@@ -18,6 +18,17 @@ const Navbar = () => {
                   GR-RESQ Tool
                 </Link>
 
+  const userGuide = (
+    <a
+      href={UserGuide}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+    >
+      User Guide
+    </a>
+  );
+
   const signInUp =
     <>
       <Link to='/signin'
@@ -31,6 +42,10 @@ const Navbar = () => {
     </>
   const profileSignOut =
     <>
+       <Link to='/submit'
+            className='text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium'>
+        Submit
+      </Link>
       <Link to='/profile'
             className='text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium'>
         {userState.userId}
@@ -69,6 +84,9 @@ const Navbar = () => {
                 {userState.signedIn && tool}
               </div>
             </div>
+          </div>
+          <div>
+            {userGuide}
           </div>
           <div>
             {userState.signedIn && userState.isAdmin && manageGroups}
