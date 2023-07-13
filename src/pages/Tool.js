@@ -2,7 +2,7 @@ import axios from 'axios'
 import React, {useState, useEffect, useContext, useRef} from 'react'
 import {Redirect} from "react-router-dom";
 import {GlobalContext} from "./App";
-import ToolSubmit from "../containers/ToolSubmit";
+//import ToolSubmit from "../containers/ToolSubmit";
 import Sidebar from "../components/Sidebar";
 import LoadingPage from "../components/LoadingPage";
 import SearchByEnvironmentCondition from "../components/GrresqQueryBox/SearchByEnvironmentCondition";
@@ -24,7 +24,7 @@ const Tool = () => {
   const {toolState, toolDispatch, flashError} = useContext(GlobalContext)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
-  const [isInitialized, setIsInitialized] = useState(false);
+  //const [isInitialized, setIsInitialized] = useState(false);
 
   const [showEnvironmentConditions, setShowEnvironmentConditions] = useState(false)
   const [showFurnaces, setShowFurnaces] = useState(false)
@@ -42,7 +42,7 @@ const Tool = () => {
 
   const queryRef = useRef(null)
   const resultRef = useRef(null)
-  const submitRef = useRef(null)
+  //const submitRef = useRef(null)
 
   const getC3KeyTokenGenerator = function () {
     const pvtKey = process.env.REACT_APP_C3_ADMIN_KEY;
@@ -314,8 +314,29 @@ const Tool = () => {
         //console.log(data)
         if (response8.status === 200) {
          //console.log("init done")
-          setIsInitialized(true);
+         //setIsInitialized(true);
           toolDispatch({type: 'INIT', payload: data})
+        }
+
+        // experiments
+        const response10 = await axios.post(
+          process.env.REACT_APP_C3_URL+'/api/1/'+process.env.REACT_APP_C3_TENANT+'/'+process.env.REACT_APP_C3_TAG+'/Experiment', 
+          {spec: {include: 'this,authors.this,recipe.this,environmentConditions.this,substrate.this,furnace.this,properties.this' }},
+          {
+              params: {
+                  'action': 'fetch'
+              },
+              headers: {
+                  'authorization': 'Bearer '+ window.localStorage.getItem('token'),
+                  'accept': 'application/json', //xml
+                  'content-type': 'application/json'
+              }
+          }
+        );  
+        if (response10.status === 200) {
+          const data=response10.data.objs
+          if(data)
+            toolDispatch({type: 'SET_QUERY_RESULT', payload: data})
         }
       } catch (e) {
         //console.log(e)
@@ -453,8 +474,8 @@ const Tool = () => {
   // else{
   return (<>
     <Sidebar
-      texts={['Query', 'Result', 'Submission']}
-      refs={[queryRef, resultRef, submitRef]}
+      texts={['Query', 'Result']} 
+      refs={[queryRef, resultRef]}
     />
     <div className='w-full md:flex flex-col md:container md:mx-auto mt-5 border rounded p-5'
          ref={queryRef}>
@@ -646,10 +667,10 @@ const Tool = () => {
         <h4 className='text-center text-3xl font-bold'>No experiment was found.</h4>}
       {<QueryResultTable/>}
     </div>
-    <div className='w-full md:flex flex-col md:container md:mx-auto mt-10 border rounded p-5'
+    {/* <div className='w-full md:flex flex-col md:container md:mx-auto mt-10 border rounded p-5'
          ref={submitRef}>
         {isInitialized &&<ToolSubmit/>}
-    </div>
+    </div> */}
   </>)
 }
 //}

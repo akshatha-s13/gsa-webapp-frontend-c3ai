@@ -21,23 +21,6 @@ const QueryResultTable = () => {
               </tr>
               </thead>
               <tbody>
-              {/*<tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">*/}
-              {/*  <td className="py-4 px-6 text-sm font-medium text-gray-900 whitespace-nowrap dark:text-white">*/}
-              {/*    Apple MacBook Pro 17"*/}
-              {/*  </td>*/}
-              {/*  <td className="py-4 px-6 text-sm text-gray-500 whitespace-nowrap dark:text-gray-400">*/}
-              {/*    Sliver*/}
-              {/*  </td>*/}
-              {/*  <td className="py-4 px-6 text-sm text-gray-500 whitespace-nowrap dark:text-gray-400">*/}
-              {/*    Laptop*/}
-              {/*  </td>*/}
-              {/*  <td className="py-4 px-6 text-sm text-gray-500 whitespace-nowrap dark:text-gray-400">*/}
-              {/*    $2999*/}
-              {/*  </td>*/}
-              {/*  <td className="py-4 px-6 text-sm font-medium text-right whitespace-nowrap">*/}
-              {/*    <a href="#" className="text-blue-600 dark:text-blue-500 hover:underline">Edit</a>*/}
-              {/*  </td>*/}
-              {/*</tr>*/}
               <QueryResultTableRows/>
               </tbody>
             </table>

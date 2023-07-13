@@ -46,7 +46,13 @@ export const submissionDefaultState = {
   semFiles: [],
   ramanFiles: [],
   ownerNumber:"",
-  visibility:""
+  visibility:"",
+  recipeVisibilty:"",
+  recipeOwnerNumber:"",
+  recipeAuthors: [],
+  furnaceVisibilty:"",
+  furnaceOwnerNumber:"",
+  furnaceAuthors:[]
 }
 
 const submissionReducer = (state, action) => {
@@ -85,6 +91,30 @@ const submissionReducer = (state, action) => {
       return {
         ...state,
         visibility: action.payload
+      }
+    }
+    case 'RECIPE_OWNER_CHANGE': {
+      return {
+        ...state,
+        recipeOwnerNumber: action.payload
+      }
+    }
+    case 'RECIPE_VISIBILITY_CHANGE': {
+      return {
+        ...state,
+        recipeVisibility: action.payload
+      }
+    }
+    case 'FURNACE_OWNER_CHANGE': {
+      return {
+        ...state,
+        furnaceOwnerNumber: action.payload
+      }
+    }
+    case 'FURNACE_VISIBILITY_CHANGE': {
+      return {
+        ...state,
+        furnaceVisibility: action.payload
       }
     }
     case 'MATERIAL_NAME_CHANGE': {
@@ -327,6 +357,18 @@ const submissionReducer = (state, action) => {
         authors: [...state.authors, action.payload]
       }
     }
+    case 'ADD_RECIPE_AUTHOR' : {
+      return {
+        ...state,
+        recipeAuthors: [...state.recipeAuthors, action.payload]
+      }
+    }
+    case 'ADD_FURNACE_AUTHOR' : {
+      return {
+        ...state,
+        furnaceAuthors: [...state.furnaceAuthors, action.payload]
+      }
+    }
     case 'ADD_PREPARATION_STEP' : {
       const newPrepStep = {
         name: state.name,
@@ -361,6 +403,24 @@ const submissionReducer = (state, action) => {
       return {
         ...state,
         authors: filteredAuthors
+      }
+    }
+    case 'DEL_FURNACE_AUTHOR' : {
+      const filteredAuthors = state.furnaceAuthors.filter((author, i) => {
+        return i !== action.payload
+      })
+      return {
+        ...state,
+        furnaceAuthors: filteredAuthors
+      }
+    }
+    case 'DEL_RECIPE_AUTHOR' : {
+      const filteredAuthors = state.recipeAuthors.filter((author, i) => {
+        return i !== action.payload
+      })
+      return {
+        ...state,
+        recipeAuthors: filteredAuthors
       }
     }
     case 'UPLOAD_SEM_FILES': {
