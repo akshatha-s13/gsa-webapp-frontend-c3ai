@@ -27,12 +27,12 @@
     - name: Set apache_global_vhost_settings for non-prod environments
       set_fact:
         apache_global_vhost_settings: "{{ apache_global_vhost_settings_non_prod }}"
-      when: apache_environment != "change-to-prod"
+      when: apache_environment != "prod"
 
     - name: Set apache_global_vhost_settings for production
       set_fact:
         apache_global_vhost_settings: "{{ apache_global_vhost_settings_prod }}"
-      when: apache_environment == "change-to-prod"
+      when: apache_environment == "prod"
 
     - name: Include geerlingguy.apache role
       include_role:
@@ -43,12 +43,12 @@
         path: /etc/apache2
         state: directory
         mode: '0755'
-      when: apache_environment != 'change-to-prod'
+      when: apache_environment != 'prod'
 
     - name: Create htpasswd file
       command: htpasswd -cb /etc/apache2/.htpasswd "{{ myuser }}" "{{ mypass }}"
       become: yes
-      when: apache_environment != 'change-to-prod'
+      when: apache_environment != 'prod'
 
     - name: Restart Apache to apply changes
       service:
