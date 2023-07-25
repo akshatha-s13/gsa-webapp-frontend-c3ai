@@ -1079,7 +1079,7 @@ const ToolSubmit = () => {
         <div>
           <label className="block text-gray-500 font-bold md:text-center mb-1 md:mb-0 pr-4"
                  htmlFor="visibility-submit">
-            Visibilty
+            Furnace Visibilty
           </label>
         </div>
         <div className="md:w-1/3 relative">
@@ -1844,7 +1844,7 @@ const ToolSubmit = () => {
         <div>
           <label className="block text-gray-500 font-bold md:text-center mb-1 md:mb-0 pr-4"
                  htmlFor="visibility-submit">
-            Visibilty
+            Recipe Visibilty
           </label>
         </div>
         <div className="md:w-1/3 relative">
@@ -2154,7 +2154,7 @@ const ToolSubmit = () => {
         </div>
         <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                 onClick={addAuthor}>
-          Add Author
+          Add Experiment Author
         </button>
       </div>
     </div>
@@ -2339,7 +2339,7 @@ const ToolSubmit = () => {
         <div>
           <label className="block text-gray-500 font-bold md:text-center mb-1 md:mb-0 pr-4"
                  htmlFor="owner-submit">
-            Owner
+            Experiment Owner
           </label>
         </div>
         <div className="md:w-1/3 relative">
@@ -2371,7 +2371,7 @@ const ToolSubmit = () => {
         <div>
           <label className="block text-gray-500 font-bold md:text-center mb-1 md:mb-0 pr-4"
                  htmlFor="visibility-submit">
-            Visibilty
+            Experiment Visibilty
           </label>
         </div>
         <div className="md:w-1/3 relative">

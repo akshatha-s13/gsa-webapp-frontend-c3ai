@@ -40,16 +40,22 @@ const Navbar = () => {
         Sign Up
       </Link>
     </>
-  const profileSignOut =
+  const submit =
     <>
        <Link to='/submit'
             className='text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium'>
         Submit
       </Link>
+    </>
+  const profile =
+    <>
       <Link to='/profile'
             className='text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium'>
         {userState.userId}
       </Link>
+    </>
+  const signout =
+    <>
       <button
         className='text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium'
         onClick={signOut}
@@ -96,7 +102,9 @@ const Navbar = () => {
             {/* {userState.signedIn && (userState.isAdmin || userState.isModerator) && manageUsers} */}
           </div>
           <div>
-            {userState.signedIn && profileSignOut}
+            {userState.signedIn && submit}
+            {userState.signedIn && !userState.isAdmin && profile}
+            {userState.signedIn && signout}
             {userState.signedIn || signInUp}
           </div>
         </div>
